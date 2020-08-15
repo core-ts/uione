@@ -489,7 +489,7 @@ export interface Searchable {
 }
 export function setSearchPermission(user: UserAccount, url: string, permissionBuilder: SearchPermissionBuilder, com: Searchable) {
   if (permissionBuilder) {
-    const permission = permissionBuilder.buildPermission(storage.getUser(), url);
+    const permission = permissionBuilder.buildPermission(user, url);
     com.viewable = permission.viewable;
     com.addable = permission.addable;
     com.editable = permission.editable;
@@ -499,7 +499,7 @@ export function setSearchPermission(user: UserAccount, url: string, permissionBu
 }
 export function setEditPermission(user: UserAccount, url: string, permissionBuilder: SearchPermissionBuilder, com: Editable) {
   if (permissionBuilder) {
-    const permission = permissionBuilder.buildPermission(storage.getUser(), url);
+    const permission = permissionBuilder.buildPermission(user, url);
     com.addable = permission.addable;
     com.editable = permission.editable;
     com.deletable = permission.deletable;
@@ -538,6 +538,98 @@ class HttpOptionsService {
   }
 }
 export const httpOptionsService = new HttpOptionsService();
+
+export function initForm(form: any, initMat?: (f: any) => void) {
+  if (form) {
+    if (!form.getAttribute('date-format')) {
+      const df = storage.getDateFormat();
+      form.setAttribute('date-format', df);
+    }
+    setTimeout(() => {
+      if (initMat) {
+        initMat(form);
+      }
+      focusFirstElement(form);
+    }, 100);
+  }
+}
+export function focusFirstElement(form: any): void {
+  let i = 0;
+  const len = form.length;
+  for (i = 0; i < len; i++) {
+    const ctrl = form[i];
+    if (!(ctrl.readOnly || ctrl.disabled)) {
+      let nodeName = ctrl.nodeName;
+      const type = ctrl.getAttribute('type');
+      if (nodeName === 'INPUT' && type !== null) {
+        nodeName = type.toUpperCase();
+      }
+      if (nodeName !== 'BUTTON'
+        && nodeName !== 'RESET'
+        && nodeName !== 'SUBMIT'
+        && nodeName !== 'CHECKBOX'
+        && nodeName !== 'RADIO') {
+        ctrl.focus();
+        try {
+          ctrl.setSelectionRange(0, ctrl.value.length);
+        } catch (err) {
+        }
+        return;
+      }
+    }
+  }
+}
+export function initMaterial(form: any): void {
+  const ui = storage.ui();
+  if (ui) {
+    ui.initMaterial(form);
+  }
+}
+
+export function numberOnFocus(event: any): void {
+  event.preventDefault();
+  storage.ui().numberOnFocus(event, storage.getLocale());
+}
+export function numberOnBlur(event: any): void {
+  event.preventDefault();
+  storage.ui().numberOnBlur(event, storage.getLocale());
+}
+export function percentageOnFocus(event: any): void {
+  event.preventDefault();
+  storage.ui().percentageOnFocus(event, storage.getLocale());
+}
+export function currencyOnFocus(event: any): void {
+  event.preventDefault();
+  storage.ui().currencyOnFocus(event, storage.getLocale(), '');
+}
+export function currencyOnBlur(event: any): void {
+  event.preventDefault();
+  storage.ui().currencyOnBlur(event, storage.getLocale(), '', false);
+}
+export function emailOnBlur(event: any): void {
+  event.preventDefault();
+  storage.ui().emailOnBlur(event);
+}
+export function urlOnBlur(event: any): void {
+  event.preventDefault();
+  storage.ui().urlOnBlur(event);
+}
+export function phoneOnBlur(event: any): void {
+  event.preventDefault();
+  storage.ui().phoneOnBlur(event);
+}
+export function faxOnBlur(event: any): void {
+  event.preventDefault();
+  storage.ui().phoneOnBlur(event);
+}
+export function requiredOnBlur(event: any): void {
+  event.preventDefault();
+  storage.ui().requiredOnBlur(event);
+}
+export function checkPatternOnBlur(event: any): void {
+  event.preventDefault();
+  storage.ui().patternOnBlur(event);
+}
 
 export * from './currency';
 export * from './locale';
