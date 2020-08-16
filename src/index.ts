@@ -541,9 +541,9 @@ export const httpOptionsService = new HttpOptionsService();
 
 export function initForm(form: any, initMat?: (f: any) => void) {
   if (form) {
-    if (!form.getAttribute('date-format')) {
+    if (!getAttribute(form, 'date-format')) {
       const df = storage.getDateFormat();
-      form.setAttribute('date-format', df);
+      setAttribute(form, 'date-format', df);
     }
     setTimeout(() => {
       if (initMat) {
@@ -552,6 +552,31 @@ export function initForm(form: any, initMat?: (f: any) => void) {
       focusFirstElement(form);
     }, 100);
   }
+}
+export function setAttribute(ctrl: any, name: string, value): void {
+  if (ctrl.setAttribute) {
+    ctrl.setAttribute(name, value);
+    return;
+  }
+  if (ctrl.attributes) {
+    const attrs: NamedNodeMap = ctrl.attributes;
+    let attr = document.createAttribute(name);
+    attr.value = value;
+    attrs.setNamedItem(attr);
+  }
+}
+export function getAttribute(ctrl: any, name: string): string {
+  if (ctrl.getAttribute) {
+    return ctrl.getAttribute(name);
+  }
+  if (ctrl.attributes) {
+    const attrs: NamedNodeMap = ctrl.attributes;
+    const attr = attrs.getNamedItem(name);
+    if (attr) {
+      return attr.value;
+    }
+  }
+  return null;
 }
 export function focusFirstElement(form: any): void {
   let i = 0;
@@ -584,6 +609,9 @@ export function initMaterial(form: any): void {
   if (ui) {
     ui.initMaterial(form);
   }
+}
+export function getLocale(): Locale {
+  return storage.getLocale();
 }
 
 export function numberOnFocus(event: any): void {
