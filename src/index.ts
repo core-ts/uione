@@ -613,6 +613,15 @@ export function initMaterial(form: any): void {
 export function getLocale(): Locale {
   return storage.getLocale();
 }
+export function showToast(msg: string): void {
+  storage.toast().showToast(msg);
+}
+export function alertError(msg: string, header?: string, detail?: string, callback?: () => void): void {
+  storage.alert().alertError(msg, header, detail, callback);
+}
+export function confirm(msg: string, header: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void): void {
+  storage.alert().confirm(msg, header, yesCallback, btnLeftText, btnRightText, noCallback);
+}
 
 export function numberOnFocus(event: any): void {
   event.preventDefault();
