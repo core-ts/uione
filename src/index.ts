@@ -5,10 +5,10 @@ import {ResourceService} from './resource';
 import {UIService} from './ui';
 
 export interface Privilege {
-  id: string;
+  id?: string;
   name: string;
   resource?: string;
-  path: string;
+  path?: string;
   icon?: string;
   sequence?: number;
   children?: Privilege[];
@@ -35,44 +35,6 @@ export interface UserAccount {
   timeFormat?: string;
   gender?: Gender;
   imageUrl?: string;
-}
-
-export interface Message {
-  message: string;
-  title?: string;
-  yes?: string;
-  no?: string;
-}
-export function message(r: ResourceService, msg: string, title?: string, yes?: string, no?: string): Message {
-  const m2 = (msg && msg.length > 0 ? r.value(msg) : '');
-  const m: Message = {
-    message: m2
-  };
-  if (title && title.length > 0) {
-    m.title = r.value(title);
-  }
-  if (yes && yes.length > 0) {
-    m.yes = r.value(yes);
-  }
-  if (no && no.length > 0) {
-    m.no = r.value(no);
-  }
-  return m;
-}
-export function messageByHttpStatus(status: number, r: ResourceService): string {
-  let msg = r.value('error_internal');
-  if (status === 401) {
-    msg = r.value('error_unauthorized');
-  } else if (status === 403) {
-    msg = r.value('error_forbidden');
-  } else if (status === 404) {
-    msg = r.value('error_not_found');
-  } else if (status === 410) {
-    msg = r.value('error_gone');
-  } else if (status === 503) {
-    msg = r.value('error_service_unavailable');
-  }
-  return msg;
 }
 
 export function toMap(map: Map<string, Privilege>, forms: Privilege[]) {
@@ -541,9 +503,9 @@ export const httpOptionsService = new HttpOptionsService();
 
 export function initForm(form: any, initMat?: (f: any) => void) {
   if (form) {
-    if (!getAttribute(form, 'date-format')) {
+    if (!form.getAttribute('date-format')) {
       const df = storage.getDateFormat();
-      setAttribute(form, 'date-format', df);
+      form.setAttribute('date-format', df);
     }
     setTimeout(() => {
       if (initMat) {
@@ -552,31 +514,7 @@ export function initForm(form: any, initMat?: (f: any) => void) {
       focusFirstElement(form);
     }, 100);
   }
-}
-export function setAttribute(ctrl: any, name: string, value): void {
-  if (ctrl.setAttribute) {
-    ctrl.setAttribute(name, value);
-    return;
-  }
-  if (ctrl.attributes) {
-    const attrs: NamedNodeMap = ctrl.attributes;
-    let attr = document.createAttribute(name);
-    attr.value = value;
-    attrs.setNamedItem(attr);
-  }
-}
-export function getAttribute(ctrl: any, name: string): string {
-  if (ctrl.getAttribute) {
-    return ctrl.getAttribute(name);
-  }
-  if (ctrl.attributes) {
-    const attrs: NamedNodeMap = ctrl.attributes;
-    const attr = attrs.getNamedItem(name);
-    if (attr) {
-      return attr.value;
-    }
-  }
-  return null;
+  return form;
 }
 export function focusFirstElement(form: any): void {
   let i = 0;
@@ -586,8 +524,14 @@ export function focusFirstElement(form: any): void {
     if (!(ctrl.readOnly || ctrl.disabled)) {
       let nodeName = ctrl.nodeName;
       const type = ctrl.getAttribute('type');
-      if (nodeName === 'INPUT' && type !== null) {
-        nodeName = type.toUpperCase();
+      if (type) {
+        const t = type.toUpperCase();
+        if (t === 'SUBMIT') {
+          ctrl.focus();
+        }
+        if (nodeName === 'INPUT') {
+          nodeName = t;
+        }
       }
       if (nodeName !== 'BUTTON'
         && nodeName !== 'RESET'
