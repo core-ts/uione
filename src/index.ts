@@ -611,7 +611,44 @@ export function checkPatternOnBlur(event: any): void {
   event.preventDefault();
   storage.ui().patternOnBlur(event);
 }
-
+export function messageByHttpStatus(status: number, r: ResourceService): string {
+  let msg = r.value('error_internal');
+  if (status === 401) {
+    msg = r.value('error_unauthorized');
+  } else if (status === 403) {
+    msg = r.value('error_forbidden');
+  } else if (status === 404) {
+    msg = r.value('error_not_found');
+  } else if (status === 410) {
+    msg = r.value('error_gone');
+  } else if (status === 503) {
+    msg = r.value('error_service_unavailable');
+  }
+  return msg;
+}
+export function error(err: any, r: ResourceService, alertError: (msg: string, header?: string, detail?: string, callback?: () => void) => void) {
+  const title = r.value('error');
+  let msg = r.value('error_internal');
+  if (!err) {
+    alertError(msg, title);
+    return;
+  }
+  const data = err && err.response ? err.response : err;
+  if (data) {
+    const status = data.status;
+    if (status && !isNaN(status)) {
+      msg = messageByHttpStatus(status, r);
+    }
+    alertError(msg, title);
+  } else {
+    alertError(msg, title);
+  }
+}
+export function handleError(err: any) {
+  const r = storage.resource();
+  const alertError = storage.alert().alertError;
+  return error(err, r, alertError);
+}
 export * from './currency';
 export * from './locale';
 export * from './resource';
