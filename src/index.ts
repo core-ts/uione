@@ -526,7 +526,7 @@ export function focusFirstElement(form: any): void {
       const type = ctrl.getAttribute('type');
       if (type) {
         const t = type.toUpperCase();
-        if (t === 'SUBMIT') {
+        if (t === 'BUTTON' || t === 'SUBMIT') {
           ctrl.focus();
         }
         if (nodeName === 'INPUT') {
@@ -646,7 +646,8 @@ export function error(err: any, r: ResourceService, alertError: (msg: string, he
 }
 export function handleError(err: any) {
   const r = storage.resource();
-  const alertError = storage.alert().alertError;
+  const a = storage.alert();
+  const alertError = a.alertError;
   return error(err, r, alertError);
 }
 export * from './currency';
