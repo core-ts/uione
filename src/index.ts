@@ -1,9 +1,24 @@
 import {AlertService} from './alert';
 import {CurrencyService} from './currency';
 import {Locale, LocaleService} from './locale';
-import {ResourceService} from './resource';
+import {ResourceService, StringMap} from './resource';
 import {UIService} from './ui';
 
+export const enLocale = {
+  'id': 'en-US',
+  'countryCode': 'US',
+  'dateFormat': 'M/d/yyyy',
+  'firstDayOfWeek': 1,
+  'decimalSeparator': '.',
+  'groupSeparator': ',',
+  'decimalDigits': 2,
+  'currencyCode': 'USD',
+  'currencySymbol': '$',
+  'currencyPattern': 0
+};
+export interface Resources {
+  [key: string]: StringMap;
+}
 export interface Privilege {
   id?: string;
   name: string;
@@ -83,7 +98,7 @@ export class DefaultResourceService implements ResourceService {
     this.value = this.value.bind(this);
     this.format = this.format.bind(this);
   }
-  resource(): any {
+  resource(): StringMap {
     return storage.getResource();
   }
   value(key: string, param?: any): string {
@@ -140,9 +155,9 @@ export class storage {
   private static _user: UserAccount = null;
   private static _forms: Privilege[] = null;
   private static _privileges: Map<string, Privilege> = new Map<string, Privilege>();
-  private static _resources = null;
-  private static _alertService: AlertService = null;
-  private static _loadingService: LoadingService = null;
+  private static _resources: Resources;
+  private static _alertService: AlertService;
+  private static _loadingService: LoadingService;
   private static _toastService: ToastService = null;
   private static _localeService: LocaleService = null;
   private static _currencyService: CurrencyService = null;
@@ -307,8 +322,12 @@ export class storage {
   }
 
   static getLocale(): Locale {
-    const localeService = storage.locale();
-    return localeService.getLocaleOrDefault(storage.getLanguage());
+    const l = storage.locale();
+    if (l) {
+      return l.getLocaleOrDefault(storage.getLanguage());
+    } else {
+      return enLocale;
+    }
   }
   static locale(): LocaleService {
     return storage._localeService;
@@ -361,7 +380,7 @@ export class storage {
     return storage._resources;
   }
 
-  static setResources(resources: any): void  {
+  static setResources(resources: Resources): void  {
     storage._resources = resources;
   }
 
@@ -369,7 +388,7 @@ export class storage {
     return storage._resourceService;
   }
 
-  static getResource(): any {
+  static getResource(): StringMap {
     const resources = storage._resources;
     const resource = resources[storage.getLanguage()];
     return (resource ? resource : resources['en']);
@@ -379,7 +398,7 @@ export class storage {
     return storage._resources[locale];
   }
 
-  static setResource(locale: string, overrideResources?: any, lastResources?: any): void {
+  static setResource(locale: string, overrideResources?: Resources, lastResources?: Resources): void {
     const overrideResourceCopy = Object.assign({}, overrideResources);
     const updateStaticResources = Object.keys(storage._resources).reduce(
       (accumulator, currentValue) => {
@@ -403,7 +422,7 @@ export class storage {
         return { ...accumulator, [currentValue]: lastResources[currentValue]};
       }, overrideResourceCopy);
 
-    const updateResources = {
+    const updateResources: Resources = {
       ...originResources,
       ...updateStaticResources
     };
@@ -626,11 +645,11 @@ export function messageByHttpStatus(status: number, r: ResourceService): string 
   }
   return msg;
 }
-export function error(err: any, r: ResourceService, alertError: (msg: string, header?: string, detail?: string, callback?: () => void) => void) {
+export function error(err: any, r: ResourceService, ae: (msg: string, header?: string, detail?: string, callback?: () => void) => void) {
   const title = r.value('error');
   let msg = r.value('error_internal');
   if (!err) {
-    alertError(msg, title);
+    ae(msg, title);
     return;
   }
   const data = err && err.response ? err.response : err;
@@ -639,16 +658,77 @@ export function error(err: any, r: ResourceService, alertError: (msg: string, he
     if (status && !isNaN(status)) {
       msg = messageByHttpStatus(status, r);
     }
-    alertError(msg, title);
+    ae(msg, title);
   } else {
-    alertError(msg, title);
+    ae(msg, title);
   }
 }
 export function handleError(err: any) {
   const r = storage.resource();
   const a = storage.alert();
-  const alertError = a.alertError;
-  return error(err, r, alertError);
+  const ae = a.alertError;
+  return error(err, r, ae);
+}
+export interface SearchParameter {
+  resource: ResourceService;
+  showMessage: (msg: string) => void;
+  showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
+  ui?: UIService;
+  getLocale?: () => Locale;
+  loading?: LoadingService;
+}
+export function inputSearch(): SearchParameter {
+  const t = storage.toast();
+  const a = storage.alert();
+  const i: SearchParameter = {
+    resource: storage.resource(),
+    showMessage: (t ? t.showToast : null),
+    showError: (a ? a.alertError : null),
+    ui: storage.ui(),
+    getLocale: getLocale,
+    loading: storage.loading()
+  };
+  return i;
+}
+export interface EditParameter {
+  resource: ResourceService;
+  showMessage: (msg: string) => void;
+  showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
+  confirm: (m2: string, header: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
+  ui?: UIService;
+  getLocale?: () => Locale;
+  loading?: LoadingService;
+}
+export function inputEdit(): EditParameter {
+  const t = storage.toast();
+  const a = storage.alert();
+  const i: EditParameter = {
+    resource: storage.resource(),
+    showMessage: (t ? t.showToast : null),
+    showError: (a ? a.alertError : null),
+    confirm: (a ? a.confirm : null),
+    ui: storage.ui(),
+    getLocale: getLocale,
+    loading: storage.loading()
+  };
+  return i;
+}
+export interface DiffParameter {
+  resource: ResourceService;
+  showMessage: (msg: string) => void;
+  showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
+  loading?: LoadingService;
+}
+export function inputDiff(): DiffParameter {
+  const t = storage.toast();
+  const a = storage.alert();
+  const i: DiffParameter = {
+    resource: storage.resource(),
+    showMessage: (t ? t.showToast : null),
+    showError: (a ? a.alertError : null),
+    loading: storage.loading()
+  };
+  return i;
 }
 export * from './currency';
 export * from './locale';
