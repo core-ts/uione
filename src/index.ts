@@ -52,7 +52,7 @@ export interface UserAccount {
   imageUrl?: string;
 }
 
-export function toMap(map: Map<string, Privilege>, forms: Privilege[]) {
+export function toMap(map: Map<string, Privilege>, forms: Privilege[]): void {
   if (!map || !forms) {
     return;
   }
@@ -74,12 +74,15 @@ export function sortPrivileges(forms: Privilege[]): Privilege[] {
   }
   return forms;
 }
-export function sortBySequence(a: any, b: any): number {
+interface ISequence {
+  sequence?: number;
+}
+export function sortBySequence(a: ISequence, b: ISequence): number {
   if (!a.sequence) {
-    a.sequence = 99;
+    a.sequence = 999;
   }
   if (!b.sequence) {
-    b.sequence = 99;
+    b.sequence = 999;
   }
   return (a.sequence - b.sequence);
 }
@@ -149,28 +152,28 @@ export class storage {
   static redirectUrl = location.origin + '/index.html?redirect=oauth2';
   static authentication = 'authentication';
   static home = 'home';
-  static moment = false;
+  static moment: boolean;
   static autoSearch = true;
 
-  private static _user: UserAccount = null;
-  private static _forms: Privilege[] = null;
+  private static _user: UserAccount;
+  private static _forms: Privilege[];
   private static _privileges: Map<string, Privilege> = new Map<string, Privilege>();
   private static _resources: Resources;
   private static _alertService: AlertService;
   private static _loadingService: LoadingService;
-  private static _toastService: ToastService = null;
-  private static _localeService: LocaleService = null;
-  private static _currencyService: CurrencyService = null;
+  private static _toastService: ToastService;
+  private static _localeService: LocaleService;
+  private static _currencyService: CurrencyService;
   private static _resourceService: ResourceService = new DefaultResourceService();
-  private static _uiService: UIService = null;
+  private static _uiService: UIService;
   static _sessionStorageAllowed = true;
   private static _initModel: any;
 
-  static getRedirectUrl() {
+  static getRedirectUrl(): string {
     return encodeURIComponent(storage.redirectUrl);
   }
 
-  static setForms(forms: Privilege[]) {
+  static setForms(forms: Privilege[]): void {
     let f2 = forms;
     storage._privileges.clear();
     if (forms) {
@@ -215,7 +218,7 @@ export class storage {
     }
   }
 
-  static setUser(user: UserAccount) {
+  static setUser(user: UserAccount): void {
     storage._user = user;
     if (user && user.privileges && Array.isArray(user.privileges)) {
       user.privileges = sortPrivileges(user.privileges);
@@ -283,27 +286,25 @@ export class storage {
   }
   static getDateFormat(): string {
     const user = storage.getUser();
-    const localeService = storage.locale();
+    let lang: string;
     if (user) {
       if (user.dateFormat) {
         const x = user.dateFormat;
         return (storage.moment ? x.toUpperCase() : x);
-      } else if (user.language) {
-        const locale = localeService.getLocaleOrDefault(user.language);
-        const x = locale.dateFormat;
-        return (storage.moment ? x.toUpperCase() : x);
       } else {
-        const language = storage.getBrowserLanguage();
-        const locale = localeService.getLocaleOrDefault(language);
-        const x = locale.dateFormat;
-        return (storage.moment ? x.toUpperCase() : x);
+        lang = user.language;
       }
-    } else {
-      const language = storage.getBrowserLanguage();
-      const locale = localeService.getLocaleOrDefault(language);
-      const x = locale.dateFormat;
-      return (storage.moment ? x.toUpperCase() : x);
     }
+    if (!lang || lang.length == 0) {
+      lang = storage.getBrowserLanguage();
+    }
+    let locale: Locale;
+    const localeService = storage.locale();
+    if (localeService) {
+      locale = localeService.getLocale(lang);
+    }
+    const x = (locale ? locale.dateFormat : enLocale.dateFormat);
+    return (storage.moment ? x.toUpperCase() : x);
   }
   static getLanguage(): string {
     const user = storage.getUser();
@@ -324,15 +325,18 @@ export class storage {
   static getLocale(): Locale {
     const l = storage.locale();
     if (l) {
-      return l.getLocaleOrDefault(storage.getLanguage());
-    } else {
-      return enLocale;
+      const lang = storage.getLanguage();
+      const locale = l.getLocale(lang);
+      if (locale) {
+        return locale;
+      }
     }
+    return enLocale;
   }
   static locale(): LocaleService {
     return storage._localeService;
   }
-  static setLocaleService(localeService: LocaleService): void  {
+  static setLocaleService(localeService: LocaleService): void {
     storage._localeService = localeService;
   }
 
@@ -340,7 +344,7 @@ export class storage {
     return storage._currencyService;
   }
 
-  static setCurrencyService(currencyService: CurrencyService): void  {
+  static setCurrencyService(currencyService: CurrencyService): void {
     storage._currencyService = currencyService;
   }
 
@@ -348,7 +352,7 @@ export class storage {
     return storage._alertService;
   }
 
-  static setAlertService(alertService: AlertService): void  {
+  static setAlertService(alertService: AlertService): void {
     storage._alertService = alertService;
   }
 
@@ -356,7 +360,7 @@ export class storage {
     return storage._loadingService;
   }
 
-  static setLoadingService(loadingService: LoadingService): void  {
+  static setLoadingService(loadingService: LoadingService): void {
     storage._loadingService = loadingService;
   }
 
@@ -364,7 +368,7 @@ export class storage {
     return storage._toastService;
   }
 
-  static setToastService(toastService: ToastService): void  {
+  static setToastService(toastService: ToastService): void {
     storage._toastService = toastService;
   }
 
@@ -372,18 +376,20 @@ export class storage {
     return storage._uiService;
   }
 
-  static setUIService(uiService: UIService): void  {
+  static setUIService(uiService: UIService): void {
     storage._uiService = uiService;
   }
 
-  static getResources(): any {
+  static getResources(): Resources {
     return storage._resources;
   }
 
-  static setResources(resources: Resources): void  {
+  static setResources(resources: Resources): void {
     storage._resources = resources;
   }
-
+  static setResourceService(r: ResourceService): void {
+    storage._resourceService = r;
+  }
   static resource(): ResourceService {
     return storage._resourceService;
   }
@@ -394,7 +400,7 @@ export class storage {
     return (resource ? resource : resources['en']);
   }
 
-  static getResourceByLocale(locale: string): any {
+  static getResourceByLocale(locale: string): StringMap {
     return storage._resources[locale];
   }
 
@@ -502,17 +508,17 @@ interface Headers {
 class HttpOptionsService {
   getHttpOptions(): { headers?: Headers } {
     const token = storage.getToken();
-    if (token === null) {
+    if (token) {
       return {
         headers: {
-          'Content-Type': 'application/json;charset=UTF-8'
+          'Content-Type': 'application/json;charset=UTF-8',
+          'Authorization': 'Bearer ' + token
         }
       };
     } else {
       return {
         headers: {
-          'Content-Type': 'application/json;charset=UTF-8',
-          'Authorization': 'Bearer ' + token
+          'Content-Type': 'application/json;charset=UTF-8'
         }
       };
     }
@@ -520,7 +526,7 @@ class HttpOptionsService {
 }
 export const httpOptionsService = new HttpOptionsService();
 
-export function initForm(form: any, initMat?: (f: any) => void) {
+export function initForm(form: HTMLFormElement, initMat?: (f: HTMLFormElement) => void): HTMLFormElement {
   if (form) {
     if (!form.getAttribute('date-format')) {
       const df = storage.getDateFormat();
@@ -535,11 +541,11 @@ export function initForm(form: any, initMat?: (f: any) => void) {
   }
   return form;
 }
-export function focusFirstElement(form: any): void {
+export function focusFirstElement(form: HTMLFormElement): void {
   let i = 0;
   const len = form.length;
   for (i = 0; i < len; i++) {
-    const ctrl = form[i];
+    const ctrl = form[i] as HTMLInputElement;
     if (!(ctrl.readOnly || ctrl.disabled)) {
       let nodeName = ctrl.nodeName;
       const type = ctrl.getAttribute('type');
@@ -567,9 +573,9 @@ export function focusFirstElement(form: any): void {
     }
   }
 }
-export function initMaterial(form: any): void {
+export function initMaterial(form: HTMLFormElement): void {
   const ui = storage.ui();
-  if (ui) {
+  if (ui && form) {
     ui.initMaterial(form);
   }
 }
@@ -586,47 +592,47 @@ export function confirm(msg: string, header: string, yesCallback?: () => void, b
   storage.alert().confirm(msg, header, yesCallback, btnLeftText, btnRightText, noCallback);
 }
 
-export function numberOnFocus(event: any): void {
+export function numberOnFocus(event: Event): void {
   event.preventDefault();
   storage.ui().numberOnFocus(event, storage.getLocale());
 }
-export function numberOnBlur(event: any): void {
+export function numberOnBlur(event: Event): void {
   event.preventDefault();
   storage.ui().numberOnBlur(event, storage.getLocale());
 }
-export function percentageOnFocus(event: any): void {
+export function percentageOnFocus(event: Event): void {
   event.preventDefault();
   storage.ui().percentageOnFocus(event, storage.getLocale());
 }
-export function currencyOnFocus(event: any): void {
+export function currencyOnFocus(event: Event): void {
   event.preventDefault();
   storage.ui().currencyOnFocus(event, storage.getLocale(), '');
 }
-export function currencyOnBlur(event: any): void {
+export function currencyOnBlur(event: Event): void {
   event.preventDefault();
   storage.ui().currencyOnBlur(event, storage.getLocale(), '', false);
 }
-export function emailOnBlur(event: any): void {
+export function emailOnBlur(event: Event): void {
   event.preventDefault();
   storage.ui().emailOnBlur(event);
 }
-export function urlOnBlur(event: any): void {
+export function urlOnBlur(event: Event): void {
   event.preventDefault();
   storage.ui().urlOnBlur(event);
 }
-export function phoneOnBlur(event: any): void {
+export function phoneOnBlur(event: Event): void {
   event.preventDefault();
   storage.ui().phoneOnBlur(event);
 }
-export function faxOnBlur(event: any): void {
+export function faxOnBlur(event: Event): void {
   event.preventDefault();
   storage.ui().phoneOnBlur(event);
 }
-export function requiredOnBlur(event: any): void {
+export function requiredOnBlur(event: Event): void {
   event.preventDefault();
   storage.ui().requiredOnBlur(event);
 }
-export function checkPatternOnBlur(event: any): void {
+export function checkPatternOnBlur(event: Event): void {
   event.preventDefault();
   storage.ui().patternOnBlur(event);
 }
@@ -645,7 +651,7 @@ export function messageByHttpStatus(status: number, r: ResourceService): string 
   }
   return msg;
 }
-export function error(err: any, r: ResourceService, ae: (msg: string, header?: string, detail?: string, callback?: () => void) => void) {
+export function error(err: any, r: ResourceService, ae: (msg: string, header?: string, detail?: string, callback?: () => void) => void): void {
   const title = r.value('error');
   let msg = r.value('error_internal');
   if (!err) {
@@ -663,7 +669,7 @@ export function error(err: any, r: ResourceService, ae: (msg: string, header?: s
     ae(msg, title);
   }
 }
-export function handleError(err: any) {
+export function handleError(err: any): void {
   const r = storage.resource();
   const a = storage.alert();
   const ae = a.alertError;

@@ -7,25 +7,25 @@ export interface ErrorMessage {
 }
 
 export interface UIService {
-  getValue(ctrl: any, locale?: Locale, currencyCode?: string): string|number|boolean;
-  decodeFromForm(form: any, locale: Locale, currencyCode: string): any;
+  getValue(ctrl: HTMLInputElement, locale?: Locale, currencyCode?: string): string|number|boolean;
+  decodeFromForm(form: HTMLFormElement, locale: Locale, currencyCode: string): any;
 
-  validateForm(form: any, locale: Locale, focusFirst?: boolean, scroll?: boolean): boolean;
-  removeFormError(form: any): void;
-  removeErrorMessage(ctrl: any): void;
-  showFormError(form: any, errors: ErrorMessage[], focusFirst?: boolean): ErrorMessage[];
+  validateForm(form: HTMLFormElement, locale: Locale, focusFirst?: boolean, scroll?: boolean): boolean;
+  removeFormError(form: HTMLFormElement): void;
+  removeErrorMessage(ctrl: HTMLInputElement): void;
+  showFormError(form: HTMLFormElement, errors: ErrorMessage[], focusFirst?: boolean): ErrorMessage[];
   buildErrorMessage(errors: ErrorMessage[]): string;
 
-  initMaterial(form: any): void;
-  numberOnFocus(event: any, locale: Locale): void;
-  numberOnBlur(event: any, locale: Locale): void;
-  percentageOnFocus(event: any, locale: Locale): void;
-  currencyOnFocus(event: any, locale: Locale, currencyCode: string): void;
-  currencyOnBlur(event: any, locale: Locale, currencyCode: string, includingCurrencySymbol: boolean): void;
-  emailOnBlur(event: any): void;
-  urlOnBlur(event: any): void;
-  phoneOnBlur(event: any): void;
-  faxOnBlur(event: any): void;
-  requiredOnBlur(event: any): void;
-  patternOnBlur(event: any): void;
+  initMaterial(form: HTMLFormElement): void;
+  numberOnFocus(event: Event, locale: Locale): void;
+  numberOnBlur(event: Event, locale: Locale): void;
+  percentageOnFocus(event: Event, locale: Locale): void;
+  currencyOnFocus(event: Event, locale: Locale, currencyCode: string): void;
+  currencyOnBlur(event: Event, locale: Locale, currencyCode: string, includingCurrencySymbol: boolean): void;
+  emailOnBlur(event: Event): void;
+  urlOnBlur(event: Event): void;
+  phoneOnBlur(event: Event): void;
+  faxOnBlur(event: Event): void;
+  requiredOnBlur(event: Event): void;
+  patternOnBlur(event: Event): void;
 }
