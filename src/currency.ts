@@ -5,5 +5,5 @@ export interface Currency {
 }
 
 export interface CurrencyService {
-  getCurrency(currencyCode: string): Currency;
+  currency(currencyCode: string): Currency;
 }

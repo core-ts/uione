@@ -289,19 +289,19 @@ export class storage {
     let lang: string;
     if (user) {
       if (user.dateFormat) {
-        const x = user.dateFormat;
-        return (storage.moment ? x.toUpperCase() : x);
+        const z = user.dateFormat;
+        return (storage.moment ? z.toUpperCase() : z);
       } else {
         lang = user.language;
       }
     }
-    if (!lang || lang.length == 0) {
+    if (!lang || lang.length === 0) {
       lang = storage.getBrowserLanguage();
     }
     let locale: Locale;
     const localeService = storage.locale();
     if (localeService) {
-      locale = localeService.getLocale(lang);
+      locale = localeService.locale(lang);
     }
     const x = (locale ? locale.dateFormat : enLocale.dateFormat);
     return (storage.moment ? x.toUpperCase() : x);
@@ -326,7 +326,7 @@ export class storage {
     const l = storage.locale();
     if (l) {
       const lang = storage.getLanguage();
-      const locale = l.getLocale(lang);
+      const locale = l.locale(lang);
       if (locale) {
         return locale;
       }
@@ -592,25 +592,54 @@ export function confirm(msg: string, header: string, yesCallback?: () => void, b
   storage.alert().confirm(msg, header, yesCallback, btnLeftText, btnRightText, noCallback);
 }
 
-export function numberOnFocus(event: Event): void {
+export function numberOnFocus(event: Event, locale?: Locale): void {
   event.preventDefault();
-  storage.ui().numberOnFocus(event, storage.getLocale());
+  if (!locale) {
+    locale = storage.getLocale();
+  }
+  storage.ui().numberOnFocus(event, locale);
 }
-export function numberOnBlur(event: Event): void {
+export function numberOnBlur(event: Event, locale?: Locale): void {
   event.preventDefault();
-  storage.ui().numberOnBlur(event, storage.getLocale());
+  if (!locale) {
+    locale = storage.getLocale();
+  }
+  storage.ui().numberOnBlur(event, locale);
 }
-export function percentageOnFocus(event: Event): void {
+export function percentageOnFocus(event: Event, locale?: Locale): void {
   event.preventDefault();
-  storage.ui().percentageOnFocus(event, storage.getLocale());
+  if (!locale) {
+    locale = storage.getLocale();
+  }
+  storage.ui().percentageOnFocus(event, locale);
 }
-export function currencyOnFocus(event: Event): void {
+export function currencyOnFocus(event: Event, locale?: Locale, currencyCode?: string): void {
   event.preventDefault();
-  storage.ui().currencyOnFocus(event, storage.getLocale(), '');
+  if (!locale) {
+    locale = storage.getLocale();
+  }
+  if (!currencyCode) {
+    const ctrl = event.currentTarget as HTMLInputElement;
+    currencyCode = ctrl.getAttribute('currency-code');
+    if (!currencyCode) {
+      currencyCode = ctrl.form.getAttribute('currency-code');
+    }
+  }
+  storage.ui().currencyOnFocus(event, locale, currencyCode);
 }
-export function currencyOnBlur(event: Event): void {
+export function currencyOnBlur(event: Event, locale?: Locale, currencyCode?: string, includingCurrencySymbol?: boolean): void {
   event.preventDefault();
-  storage.ui().currencyOnBlur(event, storage.getLocale(), '', false);
+  if (!locale) {
+    locale = storage.getLocale();
+  }
+  if (!currencyCode) {
+    const ctrl = event.currentTarget as HTMLInputElement;
+    currencyCode = ctrl.getAttribute('currency-code');
+    if (!currencyCode) {
+      currencyCode = ctrl.form.getAttribute('currency-code');
+    }
+  }
+  storage.ui().currencyOnBlur(event, locale, currencyCode, includingCurrencySymbol);
 }
 export function emailOnBlur(event: Event): void {
   event.preventDefault();

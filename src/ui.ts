@@ -8,9 +8,9 @@ export interface ErrorMessage {
 
 export interface UIService {
   getValue(ctrl: HTMLInputElement, locale?: Locale, currencyCode?: string): string|number|boolean;
-  decodeFromForm(form: HTMLFormElement, locale: Locale, currencyCode: string): any;
+  decodeFromForm(form: HTMLFormElement, locale?: Locale, currencyCode?: string): any;
 
-  validateForm(form: HTMLFormElement, locale: Locale, focusFirst?: boolean, scroll?: boolean): boolean;
+  validateForm(form: HTMLFormElement, locale?: Locale, focusFirst?: boolean, scroll?: boolean): boolean;
   removeFormError(form: HTMLFormElement): void;
   removeErrorMessage(ctrl: HTMLInputElement): void;
   showFormError(form: HTMLFormElement, errors: ErrorMessage[], focusFirst?: boolean): ErrorMessage[];
@@ -20,8 +20,8 @@ export interface UIService {
   numberOnFocus(event: Event, locale: Locale): void;
   numberOnBlur(event: Event, locale: Locale): void;
   percentageOnFocus(event: Event, locale: Locale): void;
-  currencyOnFocus(event: Event, locale: Locale, currencyCode: string): void;
-  currencyOnBlur(event: Event, locale: Locale, currencyCode: string, includingCurrencySymbol: boolean): void;
+  currencyOnFocus(event: Event, locale: Locale, currencyCode?: string): void;
+  currencyOnBlur(event: Event, locale: Locale, currencyCode?: string, includingCurrencySymbol?: boolean): void;
   emailOnBlur(event: Event): void;
   urlOnBlur(event: Event): void;
   phoneOnBlur(event: Event): void;

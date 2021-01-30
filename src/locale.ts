@@ -12,5 +12,5 @@ export interface Locale {
 }
 
 export interface LocaleService {
-  getLocale(id: string): Locale;
+  locale(id: string): Locale;
 }
