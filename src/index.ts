@@ -1,9 +1,12 @@
-import {AlertService} from './alert';
-import {CurrencyService} from './currency';
-import {Locale, LocaleService} from './locale';
+import {Locale} from './locale';
 import {ResourceService, StringMap} from './resource';
 import {UIService} from './ui';
 
+export interface Currency {
+  currencyCode?: string;
+  currencySymbol: string;
+  decimalDigits: number;
+}
 export const enLocale = {
   'id': 'en-US',
   'countryCode': 'US',
@@ -51,7 +54,13 @@ export interface UserAccount {
   gender?: Gender;
   imageUrl?: string;
 }
-
+export function getBrowserLanguage(): string {
+  const browserLanguage = navigator.languages && navigator.languages[0] // Chrome / Firefox
+    || navigator.language   // All
+    // @ts-ignore
+    || navigator.userLanguage; // IE <= 10
+  return browserLanguage;
+}
 export function toMap(map: Map<string, Privilege>, forms: Privilege[]): void {
   if (!map || !forms) {
     return;
@@ -91,9 +100,6 @@ export interface LoadingService {
   showLoading(firstTime?: boolean): void;
   hideLoading(): void;
 }
-export interface ToastService {
-  showToast(msg: string): void;
-}
 
 export class DefaultResourceService implements ResourceService {
   constructor() {
@@ -105,9 +111,9 @@ export class DefaultResourceService implements ResourceService {
     return storage.getResource();
   }
   value(key: string, param?: any): string {
-    const resource = this.resource();
-    if (typeof resource !== 'undefined') {
-      const str = resource[key];
+    const r = this.resource();
+    if (typeof r !== 'undefined') {
+      const str = r[key];
       if (!str || str.length === 0) {
         return str;
       }
@@ -115,7 +121,7 @@ export class DefaultResourceService implements ResourceService {
         return str;
       } else {
         if (typeof param === 'string') {
-          let paramValue = resource[param];
+          let paramValue = r[param];
           if (!paramValue) {
             paramValue = param;
           }
@@ -159,21 +165,23 @@ export class storage {
   private static _forms: Privilege[];
   private static _privileges: Map<string, Privilege> = new Map<string, Privilege>();
   private static _resources: Resources;
-  private static _alertService: AlertService;
   private static _loadingService: LoadingService;
-  private static _toastService: ToastService;
-  private static _localeService: LocaleService;
-  private static _currencyService: CurrencyService;
+  static message: (msg: string, option?: string) => void;
+  static alert: (msg: string, header?: string, detail?: string, callback?: () => void) => void;
+  static confirm: (msg: string, header: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
+  static locale: (id: string) => Locale;
+  static currency: (currencyCode: string) => Currency;
   private static _resourceService: ResourceService = new DefaultResourceService();
   private static _uiService: UIService;
   static _sessionStorageAllowed = true;
   private static _initModel: any;
+  private static _c: any;
 
   static getRedirectUrl(): string {
     return encodeURIComponent(storage.redirectUrl);
   }
 
-  static setForms(forms: Privilege[]): void {
+  static setPrivileges(forms: Privilege[]): void {
     let f2 = forms;
     storage._privileges.clear();
     if (forms) {
@@ -193,10 +201,10 @@ export class storage {
       }
     }
   }
-  static privileges(): Map<string, Privilege> {
+  static getPrivileges(): Map<string, Privilege> {
     return storage._privileges;
   }
-  static forms(): Privilege[] {
+  static privileges(): Privilege[] {
     let forms = storage._forms;
     if (!forms) {
       if (storage._sessionStorageAllowed === true) {
@@ -218,15 +226,15 @@ export class storage {
     }
   }
 
-  static setUser(user: UserAccount): void {
-    storage._user = user;
-    if (user && user.privileges && Array.isArray(user.privileges)) {
-      user.privileges = sortPrivileges(user.privileges);
+  static setUser(usr: UserAccount): void {
+    storage._user = usr;
+    if (usr && usr.privileges && Array.isArray(usr.privileges)) {
+      usr.privileges = sortPrivileges(usr.privileges);
     }
-    if (storage._sessionStorageAllowed === true) {
+    if (storage._sessionStorageAllowed) {
       try {
-        if (user != null) {
-          sessionStorage.setItem('authService', JSON.stringify(user));
+        if (usr != null) {
+          sessionStorage.setItem('authService', JSON.stringify(usr));
         } else {
           sessionStorage.removeItem('authService');
         }
@@ -235,125 +243,78 @@ export class storage {
       }
     }
   }
-  static getUser(): UserAccount {
-    let user = storage._user;
-    if (!user) {
-      if (storage._sessionStorageAllowed === true) {
+  static user(profile?: string): UserAccount {
+    let u = storage._user;
+    if (!u) {
+      if (storage._sessionStorageAllowed) {
         try {
           const authService = sessionStorage.getItem('authService');
           if (authService) {
             storage._user = JSON.parse(authService);
-            user = storage._user;
+            u = storage._user;
           }
         } catch (err) {
           storage._sessionStorageAllowed = false;
         }
       }
     }
-    return user;
+    return u;
   }
-  static getUserId(): string {
-    const user = storage.getUser();
-    if (!user) {
-      return '';
-    } else {
-      return user.userId;
-    }
+  static getUserId(profile?: string): string {
+    const u = storage.user(profile);
+    return (!u ? '' : u.userId);
   }
-  static getUserName(): string {
-    const user = storage.getUser();
-    if (!user) {
-      return '';
-    } else {
-      return user.username;
-    }
+  static username(profile?: string): string {
+    const u = storage.user(profile);
+    return (!u ? '' : u.username);
   }
-  static getToken(): string {
-    const user = storage.getUser();
-    if (!user) {
-      return null;
-    } else {
-      return user.token;
-    }
+  static token(profile?: string): string {
+    const u = storage.user(profile);
+    return (!u ? null : u.token);
   }
-  static getUserType(): string {
-    const user = storage.getUser();
-    if (!user) {
-      return null;
-    } else {
-      return user.userType;
-    }
+  static getUserType(profile?: string): string {
+    const u = storage.user(profile);
+    return (!u ? null : u.userType);
   }
-  static getDateFormat(): string {
-    const user = storage.getUser();
+  static getDateFormat(profile?: string): string {
+    const u = storage.user(profile);
     let lang: string;
-    if (user) {
-      if (user.dateFormat) {
-        const z = user.dateFormat;
+    if (u) {
+      if (u.dateFormat) {
+        const z = u.dateFormat;
         return (storage.moment ? z.toUpperCase() : z);
       } else {
-        lang = user.language;
+        lang = u.language;
       }
     }
     if (!lang || lang.length === 0) {
-      lang = storage.getBrowserLanguage();
+      lang = getBrowserLanguage();
     }
-    let locale: Locale;
-    const localeService = storage.locale();
-    if (localeService) {
-      locale = localeService.locale(lang);
+    let lc: Locale;
+    if (storage.locale) {
+      lc = storage.locale(lang);
     }
-    const x = (locale ? locale.dateFormat : enLocale.dateFormat);
+    const x = (lc ? lc.dateFormat : lc.dateFormat);
     return (storage.moment ? x.toUpperCase() : x);
   }
-  static getLanguage(): string {
-    const user = storage.getUser();
-    if (user && user.language) {
-      return user.language;
+  static language(profile?: string): string {
+    const u = storage.user(profile);
+    if (u && u.language) {
+      return u.language;
     } else {
-      return storage.getBrowserLanguage();
+      return getBrowserLanguage();
     }
   }
-  static getBrowserLanguage(): string {
-    const browserLanguage = navigator.languages && navigator.languages[0] // Chrome / Firefox
-      || navigator.language   // All
-      // @ts-ignore
-      || navigator.userLanguage; // IE <= 10
-    return browserLanguage;
-  }
 
-  static getLocale(): Locale {
-    const l = storage.locale();
-    if (l) {
-      const lang = storage.getLanguage();
-      const locale = l.locale(lang);
-      if (locale) {
-        return locale;
+  static getLocale(profile?: string): Locale {
+    if (storage.locale) {
+      const lang = storage.language(profile);
+      const lc = storage.locale(lang);
+      if (lc) {
+        return lc;
       }
     }
     return enLocale;
-  }
-  static locale(): LocaleService {
-    return storage._localeService;
-  }
-  static setLocaleService(localeService: LocaleService): void {
-    storage._localeService = localeService;
-  }
-
-  static currency(): CurrencyService {
-    return storage._currencyService;
-  }
-
-  static setCurrencyService(currencyService: CurrencyService): void {
-    storage._currencyService = currencyService;
-  }
-
-  static alert(): AlertService {
-    return storage._alertService;
-  }
-
-  static setAlertService(alertService: AlertService): void {
-    storage._alertService = alertService;
   }
 
   static loading(): LoadingService {
@@ -362,14 +323,6 @@ export class storage {
 
   static setLoadingService(loadingService: LoadingService): void {
     storage._loadingService = loadingService;
-  }
-
-  static toast(): ToastService {
-    return storage._toastService;
-  }
-
-  static setToastService(toastService: ToastService): void {
-    storage._toastService = toastService;
   }
 
   static ui(): UIService {
@@ -396,15 +349,15 @@ export class storage {
 
   static getResource(): StringMap {
     const resources = storage._resources;
-    const resource = resources[storage.getLanguage()];
-    return (resource ? resource : resources['en']);
+    const r = resources[storage.language()];
+    return (r ? r : resources['en']);
   }
 
-  static getResourceByLocale(locale: string): StringMap {
-    return storage._resources[locale];
+  static getResourceByLocale(id: string): StringMap {
+    return storage._resources[id];
   }
 
-  static setResource(locale: string, overrideResources?: Resources, lastResources?: Resources): void {
+  static setResource(lc: string, overrideResources?: Resources, lastResources?: Resources): void {
     const overrideResourceCopy = Object.assign({}, overrideResources);
     const updateStaticResources = Object.keys(storage._resources).reduce(
       (accumulator, currentValue) => {
@@ -432,7 +385,7 @@ export class storage {
       ...originResources,
       ...updateStaticResources
     };
-    storage._resources[locale] = updateResources[locale];
+    storage._resources[lc] = updateResources[lc];
   }
 
   static setInitModel(init: any): void {
@@ -440,6 +393,12 @@ export class storage {
   }
   static getInitModel(): any {
     return storage._initModel;
+  }
+  static setConfig(c: any): void {
+    storage._c = c;
+  }
+  static config(): any {
+    return storage._c;
   }
 }
 
@@ -474,9 +433,9 @@ export interface Searchable {
   approvable?: boolean;
   deletable?: boolean;
 }
-export function setSearchPermission(user: UserAccount, url: string, permissionBuilder: SearchPermissionBuilder, com: Searchable) {
+export function setSearchPermission(usr: UserAccount, url: string, permissionBuilder: SearchPermissionBuilder, com: Searchable) {
   if (permissionBuilder) {
-    const permission = permissionBuilder.buildPermission(user, url);
+    const permission = permissionBuilder.buildPermission(usr, url);
     com.viewable = permission.viewable;
     com.addable = permission.addable;
     com.editable = permission.editable;
@@ -484,9 +443,9 @@ export function setSearchPermission(user: UserAccount, url: string, permissionBu
     com.deletable = permission.deletable;
   }
 }
-export function setEditPermission(user: UserAccount, url: string, permissionBuilder: SearchPermissionBuilder, com: Editable) {
+export function setEditPermission(usr: UserAccount, url: string, permissionBuilder: SearchPermissionBuilder, com: Editable) {
   if (permissionBuilder) {
-    const permission = permissionBuilder.buildPermission(user, url);
+    const permission = permissionBuilder.buildPermission(usr, url);
     com.addable = permission.addable;
     com.editable = permission.editable;
     com.deletable = permission.deletable;
@@ -494,12 +453,8 @@ export function setEditPermission(user: UserAccount, url: string, permissionBuil
 }
 
 export function authenticated(): boolean {
-  const user = storage.getUser();
-  if (user) {
-    return true;
-  } else {
-    return false;
-  }
+  const usr = storage.user();
+  return (usr ? true : false);
 }
 
 interface Headers {
@@ -507,12 +462,12 @@ interface Headers {
 }
 class HttpOptionsService {
   getHttpOptions(): { headers?: Headers } {
-    const token = storage.getToken();
-    if (token) {
+    const t = storage.token();
+    if (t) {
       return {
         headers: {
           'Content-Type': 'application/json;charset=UTF-8',
-          'Authorization': 'Bearer ' + token
+          'Authorization': 'Bearer ' + t
         }
       };
     } else {
@@ -573,50 +528,112 @@ export function focusFirstElement(form: HTMLFormElement): void {
     }
   }
 }
-export function initMaterial(form: HTMLFormElement): void {
-  const ui = storage.ui();
-  if (ui && form) {
-    ui.initMaterial(form);
-  }
+export function language(profile?: string): string {
+  return storage.language(profile);
 }
-export function getLocale(): Locale {
-  return storage.getLocale();
+export function getDateFormat(profile?: string): string {
+  return storage.getDateFormat(profile);
 }
-export function showToast(msg: string): void {
-  storage.toast().showToast(msg);
+export function getPrivileges(): Map<string, Privilege> {
+  return storage.getPrivileges();
 }
-export function alertError(msg: string, header?: string, detail?: string, callback?: () => void): void {
-  storage.alert().alertError(msg, header, detail, callback);
+export function privileges(): Privilege[] {
+  return storage.privileges();
+}
+export function user(profile?: string) {
+  return storage.user(profile);
+}
+export function getUserId(profile?: string) {
+  return storage.getUserId(profile);
+}
+export function username(profile?: string) {
+  return storage.username(profile);
+}
+export function getUserType(profile?: string) {
+  return storage.getUserType(profile);
+}
+export function token(profile?: string) {
+  return storage.token(profile);
+}
+export function currency(currencyCode: string): Currency {
+  return storage.currency(currencyCode);
+}
+export function locale(id: string): Locale {
+  return storage.locale(id);
+}
+export function getLocale(profile?: string): Locale {
+  return storage.getLocale(profile);
+}
+export function getInitModel(): any {
+  return storage.getInitModel();
+}
+export function config(): any {
+  return storage.config();
+}
+export function message(msg: string, option?: string): void {
+  storage.message(msg, option);
+}
+export function alert(msg: string, header?: string, detail?: string, callback?: () => void): void {
+  storage.alert(msg, header, detail, callback);
 }
 export function confirm(msg: string, header: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void): void {
-  storage.alert().confirm(msg, header, yesCallback, btnLeftText, btnRightText, noCallback);
+  storage.confirm(msg, header, yesCallback, btnLeftText, btnRightText, noCallback);
+}
+export function resource(): ResourceService {
+  return storage.resource();
+}
+export function loading(): LoadingService {
+  return storage.loading();
+}
+export function ui(): UIService {
+  return storage.ui();
+}
+export function removeError(el: HTMLInputElement): void {
+  const u = storage.ui();
+  if (u) {
+    u.removeError(el);
+  }
+}
+export function getValue(el: HTMLInputElement, lc?: Locale, currencyCode?: string): string|number|boolean {
+  const u = storage.ui();
+  if (u) {
+    return u.getValue(el, lc, currencyCode);
+  } else {
+    return el.value;
+  }
+}
+export function registerEvents(form: HTMLFormElement): void {
+  const u = storage.ui();
+  if (u && form) {
+    u.registerEvents(form);
+  }
 }
 
-export function numberOnFocus(event: Event, locale?: Locale): void {
+export function numberOnFocus(event: Event|any, lc?: Locale): void {
   event.preventDefault();
-  if (!locale) {
-    locale = storage.getLocale();
+  if (!lc) {
+    lc = storage.getLocale();
   }
-  storage.ui().numberOnFocus(event, locale);
+  storage.ui().numberOnFocus(event, lc);
 }
-export function numberOnBlur(event: Event, locale?: Locale): void {
+export function numberOnBlur(event: Event|any, lc?: Locale): void {
   event.preventDefault();
-  if (!locale) {
-    locale = storage.getLocale();
+  if (!lc) {
+    lc = storage.getLocale();
   }
-  storage.ui().numberOnBlur(event, locale);
+  storage.ui().numberOnBlur(event, lc);
 }
-export function percentageOnFocus(event: Event, locale?: Locale): void {
+export function percentageOnFocus(event: Event|any, lc?: Locale): void {
   event.preventDefault();
-  if (!locale) {
-    locale = storage.getLocale();
+  if (!lc) {
+    lc = storage.getLocale();
   }
-  storage.ui().percentageOnFocus(event, locale);
+  storage.ui().percentageOnFocus(event, lc);
 }
-export function currencyOnFocus(event: Event, locale?: Locale, currencyCode?: string): void {
+export function currencyOnFocus(event: Event|any, lc?: Locale, currencyCode?: string): void {
   event.preventDefault();
-  if (!locale) {
-    locale = storage.getLocale();
+  if (!lc) {
+    lc = storage.getLocale();
   }
   if (!currencyCode) {
     const ctrl = event.currentTarget as HTMLInputElement;
@@ -625,12 +642,12 @@ export function currencyOnFocus(event: Event, locale?: Locale, currencyCode?: st
       currencyCode = ctrl.form.getAttribute('currency-code');
     }
   }
-  storage.ui().currencyOnFocus(event, locale, currencyCode);
+  storage.ui().currencyOnFocus(event, lc, currencyCode);
 }
-export function currencyOnBlur(event: Event, locale?: Locale, currencyCode?: string, includingCurrencySymbol?: boolean): void {
+export function currencyOnBlur(event: Event|any, lc?: Locale, currencyCode?: string, includingCurrencySymbol?: boolean): void {
   event.preventDefault();
-  if (!locale) {
-    locale = storage.getLocale();
+  if (!lc) {
+    lc = storage.getLocale();
   }
   if (!currencyCode) {
     const ctrl = event.currentTarget as HTMLInputElement;
@@ -639,29 +656,29 @@ export function currencyOnBlur(event: Event, locale?: Locale, currencyCode?: str
       currencyCode = ctrl.form.getAttribute('currency-code');
     }
   }
-  storage.ui().currencyOnBlur(event, locale, currencyCode, includingCurrencySymbol);
+  storage.ui().currencyOnBlur(event, lc, currencyCode, includingCurrencySymbol);
 }
-export function emailOnBlur(event: Event): void {
+export function emailOnBlur(event: Event|any): void {
   event.preventDefault();
   storage.ui().emailOnBlur(event);
 }
-export function urlOnBlur(event: Event): void {
+export function urlOnBlur(event: Event|any): void {
   event.preventDefault();
   storage.ui().urlOnBlur(event);
 }
-export function phoneOnBlur(event: Event): void {
+export function phoneOnBlur(event: Event|any): void {
   event.preventDefault();
   storage.ui().phoneOnBlur(event);
 }
-export function faxOnBlur(event: Event): void {
+export function faxOnBlur(event: Event|any): void {
   event.preventDefault();
   storage.ui().phoneOnBlur(event);
 }
-export function requiredOnBlur(event: Event): void {
+export function requiredOnBlur(event: Event|any): void {
   event.preventDefault();
   storage.ui().requiredOnBlur(event);
 }
-export function checkPatternOnBlur(event: Event): void {
+export function checkPatternOnBlur(event: Event|any): void {
   event.preventDefault();
   storage.ui().patternOnBlur(event);
 }
@@ -700,74 +717,79 @@ export function error(err: any, r: ResourceService, ae: (msg: string, header?: s
 }
 export function handleError(err: any): void {
   const r = storage.resource();
-  const a = storage.alert();
-  const ae = a.alertError;
-  return error(err, r, ae);
+  return error(err, r, storage.alert);
+}
+export interface ViewParameter {
+  resource: ResourceService;
+  showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
+  getLocale?: (profile?: string) => Locale;
+  loading?: LoadingService;
+}
+export function inputView(): ViewParameter {
+  const i: ViewParameter = {
+    resource: storage.resource(),
+    showError: storage.alert,
+    getLocale: storage.getLocale,
+    loading: storage.loading()
+  };
+  return i;
 }
 export interface SearchParameter {
   resource: ResourceService;
-  showMessage: (msg: string) => void;
+  showMessage: (msg: string, option?: string) => void;
   showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
   ui?: UIService;
-  getLocale?: () => Locale;
+  getLocale?: (profile?: string) => Locale;
   loading?: LoadingService;
 }
 export function inputSearch(): SearchParameter {
-  const t = storage.toast();
-  const a = storage.alert();
   const i: SearchParameter = {
     resource: storage.resource(),
-    showMessage: (t ? t.showToast : null),
-    showError: (a ? a.alertError : null),
+    showMessage: storage.message,
+    showError: storage.alert,
     ui: storage.ui(),
-    getLocale: getLocale,
+    getLocale: storage.getLocale,
     loading: storage.loading()
   };
   return i;
 }
 export interface EditParameter {
   resource: ResourceService;
-  showMessage: (msg: string) => void;
+  showMessage: (msg: string, option?: string) => void;
   showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
   confirm: (m2: string, header: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
   ui?: UIService;
-  getLocale?: () => Locale;
+  getLocale?: (profile?: string) => Locale;
   loading?: LoadingService;
 }
 export function inputEdit(): EditParameter {
-  const t = storage.toast();
-  const a = storage.alert();
   const i: EditParameter = {
     resource: storage.resource(),
-    showMessage: (t ? t.showToast : null),
-    showError: (a ? a.alertError : null),
-    confirm: (a ? a.confirm : null),
+    showMessage: storage.message,
+    showError: storage.alert,
+    confirm: storage.confirm,
     ui: storage.ui(),
-    getLocale: getLocale,
+    getLocale: storage.getLocale,
     loading: storage.loading()
   };
   return i;
 }
 export interface DiffParameter {
   resource: ResourceService;
-  showMessage: (msg: string) => void;
+  showMessage: (msg: string, option?: string) => void;
   showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
   loading?: LoadingService;
 }
 export function inputDiff(): DiffParameter {
-  const t = storage.toast();
-  const a = storage.alert();
   const i: DiffParameter = {
     resource: storage.resource(),
-    showMessage: (t ? t.showToast : null),
-    showError: (a ? a.alertError : null),
+    showMessage: storage.message,
+    showError: storage.alert,
     loading: storage.loading()
   };
   return i;
 }
-export * from './currency';
+
 export * from './locale';
 export * from './resource';
-
-export * from './alert';
 export * from './ui';

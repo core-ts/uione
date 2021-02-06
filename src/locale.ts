@@ -10,7 +10,3 @@ export interface Locale {
   currencySymbol: string;
   currencyPattern: number;
 }
-
-export interface LocaleService {
-  locale(id: string): Locale;
-}
