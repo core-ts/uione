@@ -31,15 +31,12 @@ export interface Privilege {
   sequence?: number;
   children?: Privilege[];
 }
-export enum Gender {
-  Male = 'M',
-  Female = 'F',
-  Unknown = 'U',
-}
 export interface UserAccount {
-  userId?: string;
+  id?: string;
   username?: string;
   contact?: string;
+  email?: string;
+  phone?: string;
   displayName?: string;
   passwordExpiredTime?: Date;
   token?: string;
@@ -51,8 +48,8 @@ export interface UserAccount {
   language?: string;
   dateFormat?: string;
   timeFormat?: string;
-  gender?: Gender;
-  imageUrl?: string;
+  gender?: string;
+  imageURL?: string;
 }
 export function getBrowserLanguage(): string {
   const browserLanguage = navigator.languages && navigator.languages[0] // Chrome / Firefox
@@ -112,25 +109,24 @@ export class DefaultResourceService implements ResourceService {
   }
   value(key: string, param?: any): string {
     const r = this.resource();
-    if (typeof r !== 'undefined') {
-      const str = r[key];
-      if (!str || str.length === 0) {
-        return str;
-      }
-      if (!param) {
-        return str;
-      } else {
-        if (typeof param === 'string') {
-          let paramValue = r[param];
-          if (!paramValue) {
-            paramValue = param;
-          }
-          return this.format(str, paramValue);
-        }
-      }
-    } else {
+    if (!r) {
       return '';
     }
+    const str = r[key];
+    if (!str || str.length === 0) {
+      return str;
+    }
+    if (!param) {
+      return str;
+    }
+    if (typeof param === 'string') {
+      let paramValue = r[param];
+      if (!paramValue) {
+        paramValue = param;
+      }
+      return this.format(str, paramValue);
+    }
+    return this.format(str, param);
   }
   format(...args: any[]): string {
     let formatted = args[0];
@@ -259,10 +255,6 @@ export class storage {
       }
     }
     return u;
-  }
-  static getUserId(profile?: string): string {
-    const u = storage.user(profile);
-    return (!u ? '' : u.userId);
   }
   static username(profile?: string): string {
     const u = storage.user(profile);
@@ -460,9 +452,8 @@ export function authenticated(): boolean {
 interface Headers {
   [key: string]: any;
 }
-class HttpOptionsService {
-  getHttpOptions(): { headers?: Headers } {
-    const t = storage.token();
+export function options(): { headers?: Headers } {
+  const t = storage.token();
     if (t) {
       return {
         headers: {
@@ -477,10 +468,7 @@ class HttpOptionsService {
         }
       };
     }
-  }
 }
-export const httpOptionsService = new HttpOptionsService();
-
 export function initForm(form: HTMLFormElement, initMat?: (f: HTMLFormElement) => void): HTMLFormElement {
   if (form) {
     if (!form.getAttribute('date-format')) {
@@ -542,9 +530,6 @@ export function privileges(): Privilege[] {
 }
 export function user(profile?: string) {
   return storage.user(profile);
-}
-export function getUserId(profile?: string) {
-  return storage.getUserId(profile);
 }
 export function username(profile?: string) {
   return storage.username(profile);
