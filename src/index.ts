@@ -667,24 +667,24 @@ export function checkPatternOnBlur(event: Event|any): void {
   event.preventDefault();
   storage.ui().patternOnBlur(event);
 }
-export function messageByHttpStatus(status: number, r: ResourceService): string {
-  let msg = r.value('error_internal');
+export function messageByHttpStatus(status: number, gv: (k: string) => string): string {
+  let msg = gv('error_internal');
   if (status === 401) {
-    msg = r.value('error_unauthorized');
+    msg = gv('error_unauthorized');
   } else if (status === 403) {
-    msg = r.value('error_forbidden');
+    msg = gv('error_forbidden');
   } else if (status === 404) {
-    msg = r.value('error_not_found');
+    msg = gv('error_not_found');
   } else if (status === 410) {
-    msg = r.value('error_gone');
+    msg = gv('error_gone');
   } else if (status === 503) {
-    msg = r.value('error_service_unavailable');
+    msg = gv('error_service_unavailable');
   }
   return msg;
 }
-export function error(err: any, r: ResourceService, ae: (msg: string, header?: string, detail?: string, callback?: () => void) => void): void {
-  const title = r.value('error');
-  let msg = r.value('error_internal');
+export function error(err: any, gv: (k: string) => string, ae: (msg: string, header?: string, detail?: string, callback?: () => void) => void): void {
+  const title = gv('error');
+  let msg = gv('error_internal');
   if (!err) {
     ae(msg, title);
     return;
@@ -693,7 +693,7 @@ export function error(err: any, r: ResourceService, ae: (msg: string, header?: s
   if (data) {
     const status = data.status;
     if (status && !isNaN(status)) {
-      msg = messageByHttpStatus(status, r);
+      msg = messageByHttpStatus(status, gv);
     }
     ae(msg, title);
   } else {
@@ -702,7 +702,7 @@ export function error(err: any, r: ResourceService, ae: (msg: string, header?: s
 }
 export function handleError(err: any): void {
   const r = storage.resource();
-  return error(err, r, storage.alert);
+  return error(err, r.value, storage.alert);
 }
 export interface ViewParameter {
   resource: ResourceService;
@@ -726,6 +726,7 @@ export interface SearchParameter {
   ui?: UIService;
   getLocale?: (profile?: string) => Locale;
   loading?: LoadingService;
+  auto?: boolean;
 }
 export function inputSearch(): SearchParameter {
   const i: SearchParameter = {
@@ -734,7 +735,8 @@ export function inputSearch(): SearchParameter {
     showError: storage.alert,
     ui: storage.ui(),
     getLocale: storage.getLocale,
-    loading: storage.loading()
+    loading: storage.loading(),
+    auto: storage.autoSearch
   };
   return i;
 }
