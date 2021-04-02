@@ -256,6 +256,10 @@ export class storage {
     }
     return u;
   }
+  static getUserId(profile?: string): string {
+    const u = storage.user(profile);
+    return (!u ? '' : u.id);
+  }
   static username(profile?: string): string {
     const u = storage.user(profile);
     return (!u ? '' : u.username);
@@ -539,6 +543,9 @@ export function getUserType(profile?: string) {
 }
 export function token(profile?: string) {
   return storage.token(profile);
+}
+export function getUserId(profile?: string) {
+  return storage.getUserId(profile);
 }
 export function currency(currencyCode: string): Currency {
   return storage.currency(currencyCode);
