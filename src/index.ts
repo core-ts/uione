@@ -51,7 +51,7 @@ export interface UserAccount {
   gender?: string;
   imageURL?: string;
 }
-export function getBrowserLanguage(): string {
+export function getBrowserLanguage(profile?: string): string {
   const browserLanguage = navigator.languages && navigator.languages[0] // Chrome / Firefox
     || navigator.language   // All
     // @ts-ignore
@@ -157,18 +157,21 @@ export class storage {
   static moment: boolean;
   static autoSearch = true;
 
+  private static _status: EditStatusConfig;
+  private static _diff: DiffStatusConfig;
   private static _user: UserAccount;
+  private static _lang: string;
   private static _forms: Privilege[];
   private static _privileges: Map<string, Privilege> = new Map<string, Privilege>();
   private static _resources: Resources;
-  private static _loadingService: LoadingService;
+  private static _load: LoadingService;
   static message: (msg: string, option?: string) => void;
   static alert: (msg: string, header?: string, detail?: string, callback?: () => void) => void;
   static confirm: (msg: string, header: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
   static locale: (id: string) => Locale;
   static currency: (currencyCode: string) => Currency;
-  private static _resourceService: ResourceService = new DefaultResourceService();
-  private static _uiService: UIService;
+  private static _rs: ResourceService = new DefaultResourceService();
+  private static _ui: UIService;
   static _sessionStorageAllowed = true;
   private static _initModel: any;
   private static _c: any;
@@ -177,6 +180,18 @@ export class storage {
     return encodeURIComponent(storage.redirectUrl);
   }
 
+  static setStatus(s: EditStatusConfig, profile?: string): void {
+    storage._status = s;
+  }
+  static status(profile?: string) {
+    return storage._status;
+  }
+  static setDiff(s: DiffStatusConfig, profile?: string): void {
+    storage._diff = s;
+  }
+  static diff(profile?: string): DiffStatusConfig {
+    return storage._diff;
+  }
   static setPrivileges(forms: Privilege[]): void {
     let f2 = forms;
     storage._privileges.clear();
@@ -222,7 +237,10 @@ export class storage {
     }
   }
 
-  static setUser(usr: UserAccount): void {
+  static setLanguage(lang: string, profile?: string) {
+    storage._lang = lang;
+  }
+  static setUser(usr: UserAccount, profile?: string): void {
     storage._user = usr;
     if (usr && usr.privileges && Array.isArray(usr.privileges)) {
       usr.privileges = sortPrivileges(usr.privileges);
@@ -284,7 +302,7 @@ export class storage {
       }
     }
     if (!lang || lang.length === 0) {
-      lang = getBrowserLanguage();
+      lang = getBrowserLanguage(profile);
     }
     let lc: Locale;
     if (storage.locale) {
@@ -294,11 +312,15 @@ export class storage {
     return (storage.moment ? x.toUpperCase() : x);
   }
   static language(profile?: string): string {
+    const l = storage._lang;
+    if (l && l.length > 0) {
+      return l;
+    }
     const u = storage.user(profile);
     if (u && u.language) {
       return u.language;
     } else {
-      return getBrowserLanguage();
+      return getBrowserLanguage(profile);
     }
   }
 
@@ -314,42 +336,42 @@ export class storage {
   }
 
   static loading(): LoadingService {
-    return storage._loadingService;
+    return storage._load;
   }
 
   static setLoadingService(loadingService: LoadingService): void {
-    storage._loadingService = loadingService;
+    storage._load = loadingService;
   }
 
   static ui(): UIService {
-    return storage._uiService;
+    return storage._ui;
   }
 
   static setUIService(uiService: UIService): void {
-    storage._uiService = uiService;
+    storage._ui = uiService;
   }
 
-  static getResources(): Resources {
+  static getResources(profile?: string): Resources {
     return storage._resources;
   }
 
-  static setResources(resources: Resources): void {
+  static setResources(resources: Resources, profile?: string): void {
     storage._resources = resources;
   }
-  static setResourceService(r: ResourceService): void {
-    storage._resourceService = r;
+  static setResourceService(r: ResourceService, profile?: string): void {
+    storage._rs = r;
   }
-  static resource(): ResourceService {
-    return storage._resourceService;
+  static resource(profile?: string): ResourceService {
+    return storage._rs;
   }
 
-  static getResource(): StringMap {
+  static getResource(profile?: string): StringMap {
     const resources = storage._resources;
-    const r = resources[storage.language()];
+    const r = resources[storage.language(profile)];
     return (r ? r : resources['en']);
   }
 
-  static getResourceByLocale(id: string): StringMap {
+  static getResourceByLocale(id: string, profile?: string): StringMap {
     return storage._resources[id];
   }
 
@@ -384,16 +406,16 @@ export class storage {
     storage._resources[lc] = updateResources[lc];
   }
 
-  static setInitModel(init: any): void {
+  static setInitModel(init: any, profile?: string): void {
     storage._initModel = init;
   }
-  static getInitModel(): any {
+  static getInitModel(profile?: string): any {
     return storage._initModel;
   }
-  static setConfig(c: any): void {
+  static setConfig(c: any, profile?: string): void {
     storage._c = c;
   }
-  static config(): any {
+  static config(profile?: string): any {
     return storage._c;
   }
 }
@@ -520,6 +542,24 @@ export function focusFirstElement(form: HTMLFormElement): void {
     }
   }
 }
+export function status(profile?: string): EditStatusConfig {
+  return storage.status(profile);
+}
+export function setStatus(s: EditStatusConfig, profile?: string): void {
+  return storage.setStatus(s, profile);
+}
+export function diff(profile?: string): DiffStatusConfig {
+  return storage.diff(profile);
+}
+export function setDiff(s: DiffStatusConfig, profile?: string): void {
+  return storage.setDiff(s, profile);
+}
+export function setUser(usr: UserAccount, profile?: string): void {
+  storage.setUser(usr, profile);
+}
+export function setLanguage(lang: string, profile?: string): void {
+  storage.setLanguage(lang, profile);
+}
 export function language(profile?: string): string {
   return storage.language(profile);
 }
@@ -556,11 +596,11 @@ export function locale(id: string): Locale {
 export function getLocale(profile?: string): Locale {
   return storage.getLocale(profile);
 }
-export function getInitModel(): any {
-  return storage.getInitModel();
+export function getInitModel(profile?: string): any {
+  return storage.getInitModel(profile);
 }
-export function config(): any {
-  return storage.config();
+export function config(profile?: string): any {
+  return storage.config(profile);
 }
 export function message(msg: string, option?: string): void {
   storage.message(msg, option);
@@ -571,8 +611,8 @@ export function alert(msg: string, header?: string, detail?: string, callback?: 
 export function confirm(msg: string, header: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void): void {
   storage.confirm(msg, header, yesCallback, btnLeftText, btnRightText, noCallback);
 }
-export function resource(): ResourceService {
-  return storage.resource();
+export function resource(profile?: string): ResourceService {
+  return storage.resource(profile);
 }
 export function loading(): LoadingService {
   return storage.loading();
@@ -674,18 +714,11 @@ export function checkPatternOnBlur(event: Event|any): void {
   event.preventDefault();
   storage.ui().patternOnBlur(event);
 }
-export function messageByHttpStatus(status: number, gv: (k: string) => string): string {
-  let msg = gv('error_internal');
-  if (status === 401) {
-    msg = gv('error_unauthorized');
-  } else if (status === 403) {
-    msg = gv('error_forbidden');
-  } else if (status === 404) {
-    msg = gv('error_not_found');
-  } else if (status === 410) {
-    msg = gv('error_gone');
-  } else if (status === 503) {
-    msg = gv('error_service_unavailable');
+export function messageByHttpStatus(s: number, gv: (k: string) => string): string {
+  const k = 'status_' + s;
+  let msg = gv(k);
+  if (!msg || msg.length === 0) {
+    msg = gv('error_internal');
   }
   return msg;
 }
@@ -698,9 +731,9 @@ export function error(err: any, gv: (k: string) => string, ae: (msg: string, hea
   }
   const data = err && err.response ? err.response : err;
   if (data) {
-    const status = data.status;
-    if (status && !isNaN(status)) {
-      msg = messageByHttpStatus(status, gv);
+    const s = data.status;
+    if (s && !isNaN(s)) {
+      msg = messageByHttpStatus(s, gv);
     }
     ae(msg, title);
   } else {
@@ -735,9 +768,9 @@ export interface SearchParameter {
   loading?: LoadingService;
   auto?: boolean;
 }
-export function inputSearch(): SearchParameter {
+export function inputSearch(profile?: string): SearchParameter {
   const i: SearchParameter = {
-    resource: storage.resource(),
+    resource: storage.resource(profile),
     showMessage: storage.message,
     showError: storage.alert,
     ui: storage.ui(),
@@ -747,6 +780,14 @@ export function inputSearch(): SearchParameter {
   };
   return i;
 }
+export interface EditStatusConfig {
+  DuplicateKey: number|string;
+  NotFound: number|string;
+  Success: number|string;
+  VersionError: number|string;
+  Error?: number|string;
+  DataCorrupt?: number|string;
+}
 export interface EditParameter {
   resource: ResourceService;
   showMessage: (msg: string, option?: string) => void;
@@ -755,31 +796,41 @@ export interface EditParameter {
   ui?: UIService;
   getLocale?: (profile?: string) => Locale;
   loading?: LoadingService;
+  status?: EditStatusConfig;
 }
-export function inputEdit(): EditParameter {
+export function inputEdit(profile?: string): EditParameter {
   const i: EditParameter = {
-    resource: storage.resource(),
+    resource: storage.resource(profile),
     showMessage: storage.message,
     showError: storage.alert,
     confirm: storage.confirm,
     ui: storage.ui(),
     getLocale: storage.getLocale,
-    loading: storage.loading()
+    loading: storage.loading(),
+    status: storage.status(profile),
   };
   return i;
+}
+export interface DiffStatusConfig {
+  NotFound: number|string;
+  Success: number|string;
+  VersionError: number|string;
+  Error?: number|string;
 }
 export interface DiffParameter {
   resource: ResourceService;
   showMessage: (msg: string, option?: string) => void;
   showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
   loading?: LoadingService;
+  status?: DiffStatusConfig;
 }
-export function inputDiff(): DiffParameter {
+export function inputDiff(profile?: string): DiffParameter {
   const i: DiffParameter = {
-    resource: storage.resource(),
+    resource: storage.resource(profile),
     showMessage: storage.message,
     showError: storage.alert,
-    loading: storage.loading()
+    loading: storage.loading(),
+    status: storage.diff(profile)
   };
   return i;
 }
