@@ -2,6 +2,14 @@ import {Locale} from './locale';
 import {ResourceService, StringMap} from './resource';
 import {UIService} from './ui';
 
+export interface Module {
+  id?: string|number;
+  path?: string;
+  route?: string;
+}
+export interface ModuleLoader {
+  load(): Promise<Module[]>;
+}
 export interface Currency {
   currencyCode?: string;
   currencySymbol: string;
