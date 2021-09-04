@@ -49,6 +49,9 @@ export interface Privilege {
   sequence?: number;
   children?: Privilege[];
 }
+export interface PrivilegeMap {
+  [key: string]: Privilege;
+}
 export interface UserAccount {
   id?: string;
   username?: string;
@@ -76,16 +79,16 @@ export function getBrowserLanguage(profile?: string): string {
     || navigator.userLanguage; // IE <= 10
   return browserLanguage;
 }
-export function toMap(map: Map<string, Privilege>, forms: Privilege[]): void {
-  if (!map || !forms) {
+export function toMap(ps: Privilege[], map: PrivilegeMap): void {
+  if (!map || !ps) {
     return;
   }
-  for (const form of forms) {
-    map.set(form.path, form);
+  for (const form of ps) {
+    map[form.path] = form;
   }
-  for (const form of forms) {
-    if (form.children && Array.isArray(form.children)) {
-      toMap(map, form.children);
+  for (const p of ps) {
+    if (p.children && Array.isArray(p.children) && p.children.length > 0) {
+      toMap(p.children, map);
     }
   }
 }
@@ -98,10 +101,10 @@ export function sortPrivileges(forms: Privilege[]): Privilege[] {
   }
   return forms;
 }
-interface ISequence {
+interface SequenceModel {
   sequence?: number;
 }
-export function sortBySequence(a: ISequence, b: ISequence): number {
+export function sortBySequence(a: SequenceModel, b: SequenceModel): number {
   if (!a.sequence) {
     a.sequence = 999;
   }
@@ -180,7 +183,7 @@ export class storage {
   private static _user: UserAccount;
   private static _lang: string;
   private static _forms: Privilege[];
-  private static _privileges: Map<string, Privilege> = new Map<string, Privilege>();
+  private static _privileges: PrivilegeMap;
   private static _resources: Resources;
   private static _load: LoadingService;
   static message: (msg: string, option?: string) => void;
@@ -210,18 +213,19 @@ export class storage {
   static diff(profile?: string): DiffStatusConfig {
     return storage._diff;
   }
-  static setPrivileges(forms: Privilege[]): void {
-    let f2 = forms;
-    storage._privileges.clear();
-    if (forms) {
-      f2 = sortPrivileges(forms);
-      toMap(storage._privileges, f2);
+  static setPrivileges(ps: Privilege[]): void {
+    let f2 = ps;
+    const x: any = {};
+    if (ps) {
+      f2 = sortPrivileges(ps);
+      toMap(f2, x);
     }
+    storage._privileges = x;
     storage._forms = f2;
     if (storage._sessionStorageAllowed === true) {
       try {
-        if (forms != null) {
-          sessionStorage.setItem('forms', JSON.stringify(forms));
+        if (ps != null) {
+          sessionStorage.setItem('forms', JSON.stringify(ps));
         } else {
           sessionStorage.removeItem('forms');
         }
@@ -230,7 +234,7 @@ export class storage {
       }
     }
   }
-  static getPrivileges(): Map<string, Privilege> {
+  static getPrivileges(): PrivilegeMap {
     return storage._privileges;
   }
   static privileges(): Privilege[] {
@@ -457,8 +461,8 @@ export interface EditPermissionBuilder extends PermissionBuilder<EditPermission>
 }
 export interface SearchPermissionBuilder extends PermissionBuilder<SearchPermission> {
 }
-export function setSearchPermission(permission: SearchPermission, com: SearchPermission): void {
-  if (com) {
+export function setSearchPermission(com: SearchPermission, permission: SearchPermission): void {
+  if (com && permission) {
     com.viewable = permission.viewable;
     com.addable = permission.addable;
     com.editable = permission.editable;
@@ -466,8 +470,8 @@ export function setSearchPermission(permission: SearchPermission, com: SearchPer
     com.deletable = permission.deletable;
   }
 }
-export function setEditPermission(permission: EditPermission, com: EditPermission): void {
-  if (com) {
+export function setEditPermission(com: EditPermission, permission: EditPermission): void {
+  if (com && permission) {
     com.addable = permission.addable;
     com.readOnly = permission.readOnly;
     com.deletable = permission.deletable;
@@ -477,6 +481,62 @@ export function setEditPermission(permission: EditPermission, com: EditPermissio
 export function authenticated(): boolean {
   const usr = storage.user();
   return (usr ? true : false);
+}
+export function authorized(path: string, exact?: boolean): boolean {
+  const usr = user();
+  if (!usr) {
+    return false;
+  }
+  if (!usr.privileges) {
+    return false;
+  } else {
+    const link = trimPath(path);
+    return hasPrivilege(usr.privileges, link, exact);
+  }
+}
+export function trimPath(path: string): string {
+  if (!path || path.length === 0) {
+    return '';
+  }
+  let result = path.trim();
+  if (result.endsWith('/')) {
+    result = result.substr(0, result.length - 1);
+  }
+  return result;
+}
+export function hasPrivilege(ps: Privilege[]|PrivilegeMap, path: string, exact?: boolean): boolean {
+  if (!ps || !path || path.length === 0) {
+    return false;
+  }
+  if (Array.isArray(ps)) {
+    if (exact) {
+      for (const privilege of ps) {
+        if (path === privilege.path) {
+          return true;
+        } else if (privilege.children && privilege.children.length > 0) {
+          const ok = hasPrivilege(privilege.children, path, exact);
+          if (ok) {
+            return true;
+          }
+        }
+      }
+    } else {
+      for (const privilege of ps) {
+        if (path.startsWith(privilege.path)) {
+          return true;
+        } else if (privilege.children && privilege.children.length > 0) {
+          const ok = hasPrivilege(privilege.children, path, exact);
+          if (ok) {
+            return true;
+          }
+        }
+      }
+    }
+  } else {
+    const x = ps[path];
+    return (x ? true : false);
+  }
+  return false;
 }
 
 interface Headers {
@@ -570,7 +630,7 @@ export function language(profile?: string): string {
 export function getDateFormat(profile?: string): string {
   return storage.getDateFormat(profile);
 }
-export function getPrivileges(): Map<string, Privilege> {
+export function getPrivileges(): PrivilegeMap {
   return storage.getPrivileges();
 }
 export function privileges(): Privilege[] {
