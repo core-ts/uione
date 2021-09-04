@@ -1,6 +1,6 @@
 {
   "name": "uione",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "ui-one",
   "main": "./lib/index.js",
   "types": "./src/index.ts",

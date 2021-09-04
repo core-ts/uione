@@ -2,6 +2,16 @@ import {Locale} from './locale';
 import {ResourceService, StringMap} from './resource';
 import {UIService} from './ui';
 
+export enum Status {
+  Active = 'A',
+  Inactive = 'I',
+  Deactivated = 'D',
+  Deleted = 'D'
+}
+export enum Gender {
+  Male = 'M',
+  Female = 'F'
+}
 export interface Module {
   id?: string|number;
   path?: string;
@@ -432,8 +442,8 @@ export interface PermissionBuilder<T> {
   buildPermission(user: UserAccount, url: string): T;
 }
 export interface EditPermission {
-  addable: boolean;
-  editable: boolean;
+  addable?: boolean;
+  readOnly?: boolean;
   deletable?: boolean;
 }
 export interface SearchPermission {
@@ -447,21 +457,8 @@ export interface EditPermissionBuilder extends PermissionBuilder<EditPermission>
 }
 export interface SearchPermissionBuilder extends PermissionBuilder<SearchPermission> {
 }
-export interface Editable  {
-  addable: boolean;
-  editable: boolean;
-  deletable?: boolean;
-}
-export interface Searchable {
-  viewable: boolean;
-  addable: boolean;
-  editable: boolean;
-  approvable?: boolean;
-  deletable?: boolean;
-}
-export function setSearchPermission(usr: UserAccount, url: string, permissionBuilder: SearchPermissionBuilder, com: Searchable) {
-  if (permissionBuilder) {
-    const permission = permissionBuilder.buildPermission(usr, url);
+export function setSearchPermission(permission: SearchPermission, com: SearchPermission): void {
+  if (com) {
     com.viewable = permission.viewable;
     com.addable = permission.addable;
     com.editable = permission.editable;
@@ -469,11 +466,10 @@ export function setSearchPermission(usr: UserAccount, url: string, permissionBui
     com.deletable = permission.deletable;
   }
 }
-export function setEditPermission(usr: UserAccount, url: string, permissionBuilder: SearchPermissionBuilder, com: Editable) {
-  if (permissionBuilder) {
-    const permission = permissionBuilder.buildPermission(usr, url);
+export function setEditPermission(permission: EditPermission, com: EditPermission): void {
+  if (com) {
     com.addable = permission.addable;
-    com.editable = permission.editable;
+    com.readOnly = permission.readOnly;
     com.deletable = permission.deletable;
   }
 }
