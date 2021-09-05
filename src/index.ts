@@ -845,12 +845,12 @@ export function inputSearch(profile?: string): SearchParameter {
   return i;
 }
 export interface EditStatusConfig {
-  DuplicateKey: number|string;
-  NotFound: number|string;
-  Success: number|string;
-  VersionError: number|string;
-  Error?: number|string;
-  DataCorrupt?: number|string;
+  duplicate_key: number|string;
+  not_found: number|string;
+  success: number|string;
+  version_error: number|string;
+  error?: number|string;
+  data_corrupt?: number|string;
 }
 export interface EditParameter {
   resource: ResourceService;
@@ -876,10 +876,10 @@ export function inputEdit(profile?: string): EditParameter {
   return i;
 }
 export interface DiffStatusConfig {
-  NotFound: number|string;
-  Success: number|string;
-  VersionError: number|string;
-  Error?: number|string;
+  not_found: number|string;
+  success: number|string;
+  version_error: number|string;
+  error?: number|string;
 }
 export interface DiffParameter {
   resource: ResourceService;
