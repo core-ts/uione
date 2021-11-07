@@ -8,12 +8,12 @@ export interface ErrorMessage {
 
 export interface UIService {
   getValue(el: HTMLInputElement, locale?: Locale, currencyCode?: string): string|number|boolean;
-  decodeFromForm(form: HTMLFormElement, locale?: Locale, currencyCode?: string): any;
+  decodeFromForm(form: HTMLFormElement, locale?: Locale, currencyCode?: string|null): any;
 
-  validateForm(form: HTMLFormElement, locale?: Locale, focusFirst?: boolean, scroll?: boolean): boolean;
+  validateForm(form?: HTMLFormElement, locale?: Locale, focusFirst?: boolean, scroll?: boolean): boolean;
   removeFormError(form: HTMLFormElement): void;
   removeError(el: HTMLInputElement): void;
-  showFormError(form: HTMLFormElement, errors: ErrorMessage[], focusFirst?: boolean): ErrorMessage[];
+  showFormError(form?: HTMLFormElement, errors?: ErrorMessage[], focusFirst?: boolean): ErrorMessage[];
   buildErrorMessage(errors: ErrorMessage[]): string;
 
   registerEvents?(form: HTMLFormElement): void;

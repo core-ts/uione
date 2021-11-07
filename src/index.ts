@@ -182,9 +182,9 @@ class s {
 
   private static _status: EditStatusConfig;
   private static _diff: DiffStatusConfig;
-  private static _user: UserAccount;
+  private static _user: UserAccount|null|undefined;
   private static _lang: string;
-  private static _forms: Privilege[];
+  private static _forms: Privilege[]|null|undefined;
   private static _privileges: PrivilegeMap;
   private static _resources: Resources;
   private static _load: LoadingService;
@@ -215,7 +215,7 @@ class s {
   static diff(profile?: string): DiffStatusConfig {
     return s._diff;
   }
-  static setPrivileges(ps: Privilege[]): void {
+  static setPrivileges(ps: Privilege[]|null|undefined): void {
     let f2 = ps;
     const x: any = {};
     if (ps) {
@@ -264,7 +264,7 @@ class s {
   static setLanguage(lang: string, profile?: string) {
     s._lang = lang;
   }
-  static setUser(usr: UserAccount, profile?: string): void {
+  static setUser(usr: UserAccount|null|undefined, profile?: string): void {
     s._user = usr;
     if (usr && usr.privileges && Array.isArray(usr.privileges)) {
       usr.privileges = sortPrivileges(usr.privileges);
@@ -281,7 +281,7 @@ class s {
       }
     }
   }
-  static user(profile?: string): UserAccount {
+  static user(profile?: string): UserAccount|null|undefined {
     let u = s._user;
     if (!u) {
       if (s._sessionStorageAllowed) {
@@ -638,7 +638,7 @@ export function getPrivileges(): PrivilegeMap {
 export function privileges(): Privilege[] {
   return s.privileges();
 }
-export function user(profile?: string) {
+export function user(profile?: string): UserAccount|null|undefined {
   return s.user(profile);
 }
 export function username(profile?: string) {
@@ -716,7 +716,6 @@ export function numberOnFocus(e: Event|any, lc?: Locale): void {
   if (u && u.numberOnFocus) {
     u.numberOnFocus(e, lc);
   }
-  
 }
 export function numberOnBlur(e: Event|any, lc?: Locale): void {
   e.preventDefault();
