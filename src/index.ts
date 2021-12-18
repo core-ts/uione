@@ -1,5 +1,5 @@
 import {Locale} from './locale';
-import {ResourceService, StringMap} from './resource';
+import {Resource, StringMap} from './resource';
 import {UIService} from './ui';
 
 export enum Status {
@@ -121,7 +121,7 @@ export interface LoadingService {
   hideLoading(): void;
 }
 
-export class DefaultResourceService implements ResourceService {
+export class ResourceService implements Resource {
   constructor() {
     this.resource = this.resource.bind(this);
     this.value = this.value.bind(this);
@@ -190,10 +190,10 @@ class s {
   private static _load: LoadingService;
   static message: (msg: string, option?: string) => void;
   static alert: (msg: string, header?: string, detail?: string, callback?: () => void) => void;
-  static confirm: (msg: string, header: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
+  static confirm: (msg: string, header?: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
   static locale: (id: string) => Locale|undefined;
-  static currency: (currencyCode: string) => Currency;
-  private static _rs: ResourceService = new DefaultResourceService();
+  static currency: (currencyCode: string) => Currency|undefined;
+  private static _rs: Resource = new ResourceService();
   private static _ui: UIService;
   static _sessionStorageAllowed = true;
   private static _initModel: any;
@@ -382,10 +382,10 @@ class s {
   static setResources(resources: Resources, profile?: string): void {
     s._resources = resources;
   }
-  static setResourceService(r: ResourceService, profile?: string): void {
+  static setResourceService(r: Resource, profile?: string): void {
     s._rs = r;
   }
-  static resource(profile?: string): ResourceService {
+  static resource(profile?: string): Resource {
     return s._rs;
   }
 
@@ -620,8 +620,11 @@ export function diff(profile?: string): DiffStatusConfig {
 export function setDiff(c: DiffStatusConfig, profile?: string): void {
   return s.setDiff(c, profile);
 }
-export function setUser(usr: UserAccount, profile?: string): void {
+export function setUser(usr: UserAccount|undefined|null, profile?: string): void {
   s.setUser(usr, profile);
+}
+export function setPrivileges(ps: Privilege[]|null|undefined): void {
+  s.setPrivileges(ps);
 }
 export function setLanguage(lang: string, profile?: string): void {
   s.setLanguage(lang, profile);
@@ -641,43 +644,61 @@ export function privileges(): Privilege[] {
 export function user(profile?: string): UserAccount|null|undefined {
   return s.user(profile);
 }
+export function resource(profile?: string): StringMap {
+  return s.getResource(profile);
+}
+export const useResource = resource;
 export function username(profile?: string) {
   return s.username(profile);
 }
+export const getUsername = username;
+export const userUsername = username;
 export function getUserType(profile?: string) {
   return s.getUserType(profile);
 }
-export function token(profile?: string) {
+export const useUserType = getUserType;
+export function token(profile?: string): string|undefined {
   return s.token(profile);
 }
+export const getToken = token;
+export const useToken = token;
 export function getUserId(profile?: string) {
   return s.getUserId(profile);
 }
-export function currency(currencyCode: string): Currency {
+export const useUserId = getUserId;
+export function currency(currencyCode: string): Currency|undefined {
   return s.currency(currencyCode);
 }
+export const getCurrency = currency;
+export const useCurrency = currency;
 export function locale(id: string): Locale|undefined {
   return s.locale(id);
 }
 export function getLocale(profile?: string): Locale {
   return s.getLocale(profile);
 }
+export const useLocale = getLocale;
 export function getInitModel(profile?: string): any {
   return s.getInitModel(profile);
 }
 export function config(profile?: string): any {
   return s.config(profile);
 }
+export const getConfig = config;
+export const useConfig = config;
 export function message(msg: string, option?: string): void {
   s.message(msg, option);
 }
+export const showMessage = message;
 export function alert(msg: string, header?: string, detail?: string, callback?: () => void): void {
   s.alert(msg, header, detail, callback);
 }
+export const showAlert = alert;
 export function confirm(msg: string, header: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void): void {
   s.confirm(msg, header, yesCallback, btnLeftText, btnRightText, noCallback);
 }
-export function resource(profile?: string): ResourceService {
+export const showConfirm = confirm;
+export function getResource(profile?: string): Resource {
   return s.resource(profile);
 }
 export function loading(): LoadingService {
@@ -692,7 +713,7 @@ export function removeError(el: HTMLInputElement): void {
     u.removeError(el);
   }
 }
-export function getValue(el: HTMLInputElement, lc?: Locale, currencyCode?: string): string|number|boolean {
+export function getValue(el: HTMLInputElement, lc?: Locale, currencyCode?: string): string|number|boolean|null|undefined {
   const u = s.ui();
   if (u) {
     return u.getValue(el, lc, currencyCode);
@@ -846,7 +867,7 @@ export function handleError(err: any): void {
   return error(err, r.value, s.alert);
 }
 export interface ViewParameter {
-  resource: ResourceService;
+  resource: Resource;
   showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
   getLocale?: (profile?: string) => Locale;
   loading?: LoadingService;
@@ -861,7 +882,7 @@ export function inputView(): ViewParameter {
   return i;
 }
 export interface SearchParameter {
-  resource: ResourceService;
+  resource: Resource;
   showMessage: (msg: string, option?: string) => void;
   showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
   ui?: UIService;
@@ -890,10 +911,10 @@ export interface EditStatusConfig {
   data_corrupt?: number|string;
 }
 export interface EditParameter {
-  resource: ResourceService;
+  resource: Resource;
   showMessage: (msg: string, option?: string) => void;
   showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
-  confirm: (m2: string, header: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
+  confirm: (m2: string, header?: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
   ui?: UIService;
   getLocale?: (profile?: string) => Locale;
   loading?: LoadingService;
@@ -919,7 +940,7 @@ export interface DiffStatusConfig {
   error?: number|string;
 }
 export interface DiffParameter {
-  resource: ResourceService;
+  resource: Resource;
   showMessage: (msg: string, option?: string) => void;
   showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
   loading?: LoadingService;
