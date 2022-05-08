@@ -956,7 +956,12 @@ export function inputDiff(profile?: string): DiffParameter {
   };
   return i;
 }
-
+const g = 0.017453292519943295;  // Math.PI / 180
+const co = Math.cos;
+export function distance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const a = 0.5 - co((lat2 - lat1) * g) / 2 + co(lat1 * g) * co(lat2 * g) * (1 - co((lon2 - lon1) * g)) / 2;
+  return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
+}
 export * from './locale';
 export * from './resource';
 export * from './ui';
