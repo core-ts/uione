@@ -641,9 +641,12 @@ export function getPrivileges(): PrivilegeMap {
 export function privileges(): Privilege[] {
   return s.privileges();
 }
+export const usePrivileges = privileges;
 export function user(profile?: string): UserAccount|null|undefined {
   return s.user(profile);
 }
+export const getUser = user;
+export const useUser = user;
 export function resource(profile?: string): StringMap {
   return s.getResource(profile);
 }
@@ -652,7 +655,7 @@ export function username(profile?: string) {
   return s.username(profile);
 }
 export const getUsername = username;
-export const userUsername = username;
+export const useUsername = username;
 export function getUserType(profile?: string) {
   return s.getUserType(profile);
 }
@@ -961,6 +964,30 @@ const co = Math.cos;
 export function distance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const a = 0.5 - co((lat2 - lat1) * g) / 2 + co(lat1 * g) * co(lat2 * g) * (1 - co((lon2 - lon1) * g)) / 2;
   return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
+}
+export function hasClass(className: string, ele: HTMLElement | null | undefined): boolean {
+  if (ele && ele.classList.contains(className)) {
+    return true;
+  }
+  return false;
+}
+export function parentHasClass(className: string, ele: HTMLElement | null | undefined): boolean {
+  if (ele) {
+    const parent = ele.parentElement;
+    if (parent && parent.classList.contains(className)) {
+      return true;
+    }
+  }
+  return false;
+}
+const d = 'data-value';
+export function handleSelect(ele: HTMLSelectElement, attr?: string): void {
+  const at = attr && attr.length > 0 ? attr : d;
+  if (ele.value === '') {
+    ele.removeAttribute(at);
+  } else {
+    ele.setAttribute(at, ele.value);
+  }
 }
 export * from './locale';
 export * from './resource';
