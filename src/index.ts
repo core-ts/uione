@@ -989,6 +989,34 @@ export function handleSelect(ele: HTMLSelectElement, attr?: string): void {
     ele.setAttribute(at, ele.value);
   }
 }
+export interface SessionData {
+  token: string;
+  data: string;
+  ref: string;
+}
+export interface SessionResponse {
+  token: string;
+  data: string;
+}
+export interface HttpRequest {
+  get<T>(url: string, options?: { headers?: Headers; }): Promise<T>;
+  delete<T>(url: string, options?: { headers?: Headers; }): Promise<T>;
+  post<T>(url: string, obj: any, options?: { headers?: Headers; }): Promise<T>;
+  put<T>(url: string, obj: any, options?: { headers?: Headers; }): Promise<T>;
+  patch<T>(url: string, obj: any, options?: { headers?: Headers; }): Promise<T>;
+}
+export class SessionService<T, R> {
+  constructor(public httpRequest: HttpRequest, public url: string, public url2: string) {
+    this.createSession = this.createSession.bind(this);
+    this.deleteSession = this.deleteSession.bind(this);
+  }
+  createSession(data: T): Promise<R> {
+    return this.httpRequest.post(this.url, data);
+  }
+  deleteSession(sessionId: string): Promise<number> {
+    return this.httpRequest.delete(this.url2, {headers:{authorization: sessionId}});
+  }
+}
 export * from './locale';
 export * from './resource';
 export * from './ui';
