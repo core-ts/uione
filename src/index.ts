@@ -202,7 +202,6 @@ class s {
   static getRedirectUrl(): string {
     return encodeURIComponent(s.redirectUrl);
   }
-
   static setStatus(c: EditStatusConfig, profile?: string): void {
     s._status = c;
   }
@@ -306,9 +305,27 @@ class s {
     const u = s.user(profile);
     return (!u ? '' : u.username);
   }
-  static token(profile?: string): string|undefined {
+  static token(profile?: string): Promise<string|undefined> {
     const u = s.user(profile);
-    return (!u ? undefined : u.token);
+    return Promise.resolve(!u ? undefined : u.token);
+  }
+  static options(profile?: string): Promise<{ headers?: Headers }> {
+    return s.token().then(t => {
+      if (t) {
+        return {
+          headers: {
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Authorization': 'Bearer ' + t
+          }
+        };
+      } else {
+        return {
+          headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+          }
+        };
+      }
+    });
   }
   static getUserType(profile?: string): string|undefined {
     const u = s.user(profile);
@@ -544,22 +561,8 @@ export function hasPrivilege(ps: Privilege[]|PrivilegeMap, path: string, exact?:
 interface Headers {
   [key: string]: any;
 }
-export function options(): { headers?: Headers } {
-  const t = s.token();
-    if (t) {
-      return {
-        headers: {
-          'Content-Type': 'application/json;charset=UTF-8',
-          'Authorization': 'Bearer ' + t
-        }
-      };
-    } else {
-      return {
-        headers: {
-          'Content-Type': 'application/json;charset=UTF-8'
-        }
-      };
-    }
+export function options(): Promise<{ headers?: Headers }> {
+  return s.options();
 }
 export function initForm(form: HTMLFormElement, initMat?: (f: HTMLFormElement) => void): HTMLFormElement {
   if (form) {
@@ -660,7 +663,7 @@ export function getUserType(profile?: string) {
   return s.getUserType(profile);
 }
 export const useUserType = getUserType;
-export function token(profile?: string): string|undefined {
+export function token(profile?: string): Promise<string|undefined> {
   return s.token(profile);
 }
 export const getToken = token;
