@@ -47,6 +47,7 @@ export interface Privilege {
   path?: string;
   icon?: string;
   sequence?: number;
+  permissions?: number;
   children?: Privilege[];
 }
 export interface PrivilegeMap {
@@ -79,13 +80,14 @@ export function getBrowserLanguage(profile?: string): string {
     || navigator.userLanguage; // IE <= 10
   return browserLanguage;
 }
-export function toMap(ps: Privilege[], map: PrivilegeMap): void {
+export function toMap(ps: Privilege[], map: Map<string,Privilege>): void {
   if (!map || !ps) {
     return;
   }
   for (const form of ps) {
     if (form.path) {
-      map[form.path] = form;
+      map.set(form.path, form);
+      // map[form.path] = form;
     }
   }
   for (const p of ps) {
@@ -185,7 +187,7 @@ class s {
   private static _user: UserAccount|null|undefined;
   private static _lang: string;
   private static _forms: Privilege[]|null|undefined;
-  private static _privileges: PrivilegeMap;
+  private static _privileges: Map<string,Privilege>;// PrivilegeMap;
   private static _resources: Resources;
   private static _load: LoadingService;
   static message: (msg: string, option?: string) => void;
@@ -216,7 +218,7 @@ class s {
   }
   static setPrivileges(ps: Privilege[]|null|undefined): void {
     let f2 = ps;
-    const x: any = {};
+    const x = new Map<string, Privilege>();
     if (ps) {
       f2 = sortPrivileges(ps);
       toMap(f2, x);
@@ -235,7 +237,7 @@ class s {
       }
     }
   }
-  static getPrivileges(): PrivilegeMap {
+  static getPrivileges(): Map<string, Privilege> {// PrivilegeMap {
     return s._privileges;
   }
   static privileges(): Privilege[] {
@@ -523,39 +525,85 @@ export function trimPath(path: string): string {
   }
   return result;
 }
-export function hasPrivilege(ps: Privilege[]|PrivilegeMap, path: string, exact?: boolean): boolean {
+export const read = 1;
+export const write = 2;
+export const approve = 4;
+export class Permission {
+  static read = 1;
+  static write = 2;
+  static delete = 4;
+  static approve = 8;
+}
+export function getPath(s: string, i?: number): string {
+  if (!i || i <= 0) {
+    return s;
+  }
+  let count = 0;
+  while (count < i) {
+    const k = s.lastIndexOf('/');
+    if (k < 0) {
+      return s;
+    }
+    s = s.substring(0, k);
+    count = count + 1;
+  }
+  return s;
+}
+export function hasPermission(permission?: number, i?: number, ps?: Privilege[]|Map<string, Privilege>): boolean {
+  let ps2: Privilege[]|Map<string, Privilege> = s.getPrivileges();
+  if (ps) {
+    ps2 = ps;
+  }
+  const path = getPath(window.location.pathname, i);
+  return hasPermissionWithPath(ps2, path, permission, true);
+}
+export function hasPermissionWithPath(ps: Privilege[]|Map<string, Privilege>, path: string, permission?: number, exact?: boolean): boolean {
+  const p = getPrivilege(ps, path, exact);
+  if (p) {
+    if (!permission || permission <= 0 || !p.permissions || p.permissions <= 0) {
+      return true;
+    }
+    return (p.permissions & permission) == permission;
+  }
+  return false;
+}
+export function getPrivilege(ps: Privilege[]|Map<string, Privilege>, path: string, exact?: boolean): Privilege|undefined {
   if (!ps || !path || path.length === 0) {
-    return false;
+    return undefined;
   }
   if (Array.isArray(ps)) {
     if (exact) {
       for (const privilege of ps) {
         if (path === privilege.path) {
-          return true;
+          return privilege;
         } else if (privilege.children && privilege.children.length > 0) {
-          const ok = hasPrivilege(privilege.children, path, exact);
+          const ok = getPrivilege(privilege.children, path, exact);
           if (ok) {
-            return true;
+            return ok;
           }
         }
       }
+      return undefined;
     } else {
       for (const privilege of ps) {
         if (privilege.path && path.startsWith(privilege.path)) {
-          return true;
+          return privilege;
         } else if (privilege.children && privilege.children.length > 0) {
-          const ok = hasPrivilege(privilege.children, path, exact);
+          const ok = getPrivilege(privilege.children, path, exact);
           if (ok) {
-            return true;
+            return ok;
           }
         }
       }
+      return undefined;
     }
   } else {
-    const x = ps[path];
-    return (x ? true : false);
+    return ps.get(path) // ps[path];
   }
-  return false;
+}
+export function hasPrivilege(ps: Privilege[]|Map<string, Privilege>, path: string, exact?: boolean): boolean {
+  const p = getPrivilege(ps, path, exact);
+  return (p != undefined);
 }
 
 interface Headers {
@@ -638,7 +686,7 @@ export function language(profile?: string): string {
 export function getDateFormat(profile?: string): string {
   return s.getDateFormat(profile);
 }
-export function getPrivileges(): PrivilegeMap {
+export function getPrivileges(): Map<string, Privilege> {
   return s.getPrivileges();
 }
 export function privileges(): Privilege[] {
