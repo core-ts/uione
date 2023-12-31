@@ -74,11 +74,15 @@ export interface UserAccount {
   imageURL?: string;
 }
 export function getBrowserLanguage(profile?: string): string {
-  const browserLanguage = navigator.languages && navigator.languages[0] // Chrome / Firefox
-    || navigator.language   // All
-    // @ts-ignore
-    || navigator.userLanguage; // IE <= 10
-  return browserLanguage;
+  const na = s.navigator;
+  if (na) {
+    const browserLanguage = navigator.languages && navigator.languages[0] // Chrome / Firefox
+      || navigator.language   // All
+      // @ts-ignore
+      || navigator.userLanguage; // IE <= 10
+    return browserLanguage;
+  }
+  return 'en';
 }
 export function toMap(ps: Privilege[], map: Map<string,Privilege>): void {
   if (!map || !ps) {
@@ -176,12 +180,12 @@ export class ResourceService implements Resource {
 
 // tslint:disable-next-line:class-name
 class s {
-  static redirectUrl = location.origin + '/index.html?redirect=oauth2';
+  // static redirectUrl = location.origin + '/index.html?redirect=oauth2';
   static authentication = 'authentication';
   static home = 'home';
   static moment: boolean;
   static autoSearch = true;
-
+  static navigator: any;
   private static _status: EditStatusConfig;
   private static _diff: DiffStatusConfig;
   private static _user: UserAccount|null|undefined;
@@ -200,10 +204,10 @@ class s {
   static _sessionStorageAllowed = true;
   private static _initModel: any;
   private static _c: any;
-
+/*
   static getRedirectUrl(): string {
     return encodeURIComponent(s.redirectUrl);
-  }
+  } */
   static setStatus(c: EditStatusConfig, profile?: string): void {
     s._status = c;
   }
