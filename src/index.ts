@@ -76,10 +76,10 @@ export interface UserAccount {
 export function getBrowserLanguage(profile?: string): string {
   const na = s.navigator;
   if (na) {
-    const browserLanguage = navigator.languages && navigator.languages[0] // Chrome / Firefox
-      || navigator.language   // All
+    const browserLanguage = na.languages && na.languages[0] // Chrome / Firefox
+      || na.language   // All
       // @ts-ignore
-      || navigator.userLanguage; // IE <= 10
+      || na.userLanguage; // IE <= 10
     return browserLanguage;
   }
   return 'en';
