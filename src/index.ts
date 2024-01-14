@@ -74,7 +74,10 @@ export interface UserAccount {
   imageURL?: string;
 }
 export function getBrowserLanguage(profile?: string): string {
-  const na = s.navigator;
+  let na = s.navigator;
+  if (!na && !s.globalNavigator) {
+    na = navigator;
+  }
   if (na) {
     const browserLanguage = na.languages && na.languages[0] // Chrome / Firefox
       || na.language   // All
@@ -186,6 +189,7 @@ class s {
   static moment: boolean;
   static autoSearch = true;
   static navigator: any;
+  static globalNavigator?: boolean;
   private static _status: EditStatusConfig;
   private static _diff: DiffStatusConfig;
   private static _user: UserAccount|null|undefined;
@@ -358,7 +362,7 @@ class s {
     const x = (lc ? lc.dateFormat : 'M/d/yyyy');
     return (s.moment ? x.toUpperCase() : x);
   }
-  static language(profile?: string): string {
+  static getLanguage(profile?: string): string {
     const l = s._lang;
     if (l && l.length > 0) {
       return l;
@@ -373,7 +377,7 @@ class s {
 
   static getLocale(profile?: string): Locale {
     if (s.locale) {
-      const lang = s.language(profile);
+      const lang = s.getLanguage(profile);
       const lc = s.locale(lang);
       if (lc) {
         return lc;
@@ -414,7 +418,7 @@ class s {
 
   static getResource(profile?: string): StringMap {
     const resources = s._resources;
-    const r = resources[s.language(profile)];
+    const r = resources[s.getLanguage(profile)];
     return (r ? r : resources['en']);
   }
 
@@ -684,19 +688,18 @@ export function setPrivileges(ps: Privilege[]|null|undefined): void {
 export function setLanguage(lang: string, profile?: string): void {
   s.setLanguage(lang, profile);
 }
-export function language(profile?: string): string {
-  return s.language(profile);
+export function getLanguage(profile?: string): string {
+  return s.getLanguage(profile);
 }
 export function getDateFormat(profile?: string): string {
   return s.getDateFormat(profile);
 }
-export function getPrivileges(): Map<string, Privilege> {
+export function usePrivileges(): Map<string, Privilege> {
   return s.getPrivileges();
 }
-export function privileges(): Privilege[] {
+export function getPrivileges(): Privilege[] {
   return s.privileges();
 }
-export const usePrivileges = privileges;
 export function user(profile?: string): UserAccount|null|undefined {
   return s.user(profile);
 }
@@ -736,6 +739,13 @@ export function getLocale(profile?: string): Locale {
   return s.getLocale(profile);
 }
 export const useLocale = getLocale;
+export function getParam(url: string, i?: number): string {
+  const ps = url.split('/');
+  if (!i || i < 0) {
+    i = 0;
+  }
+  return ps[ps.length - 1 - i];
+}
 export function getInitModel(profile?: string): any {
   return s.getInitModel(profile);
 }
