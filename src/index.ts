@@ -476,6 +476,14 @@ export class Status {
   static Submitted = 'S';
   static Approved = 'A';
   static Published = 'P';
+  static Active = 'A';
+  static Deleted = 'D';
+  static Deativated = 'D';
+  static Inactive = 'I';
+}
+export class Gender {
+  static Male = 'M';
+  static Female = 'F';
 }
 export function isSubmitted(s: string): boolean {
   return s === Status.Submitted;
