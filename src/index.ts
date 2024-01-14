@@ -1,7 +1,7 @@
 import {Locale} from './locale';
 import {Resource, StringMap} from './resource';
 import {UIService} from './ui';
-
+/*
 export enum Status {
   Active = 'A',
   Inactive = 'I',
@@ -12,6 +12,7 @@ export enum Gender {
   Male = 'M',
   Female = 'F'
 }
+*/
 export interface Module {
   id?: string|number;
   path?: string;
@@ -471,6 +472,23 @@ class s {
   }
 }
 export const storage = s;
+export class Status {
+  static Submitted = 'S';
+  static Approved = 'A';
+  static Published = 'P';
+}
+export function isSubmitted(s: string): boolean {
+  return s === Status.Submitted;
+}
+export function isApproved(s: string): boolean {
+  return s === Status.Approved;
+}
+export function isPublished(s: string): boolean {
+  return s === Status.Published;
+}
+export function canSubmitted(s: string): boolean {
+  return s !== Status.Submitted && s !== Status.Approved && s !== Status.Published
+}
 export interface PermissionBuilder<T> {
   buildPermission(user: UserAccount, url: string): T;
 }
