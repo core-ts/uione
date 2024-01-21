@@ -22,8 +22,8 @@ export interface ModuleLoader {
   load(): Promise<Module[]>;
 }
 export interface Currency {
-  currencyCode?: string;
-  currencySymbol: string;
+  code?: string;
+  symbol: string;
   decimalDigits: number;
 }
 export const enLocale = {
@@ -937,17 +937,17 @@ export function checkPatternOnBlur(e: Event|any): void {
     u.patternOnBlur(e);
   }
 }
-export function messageByHttpStatus(n: number, gv: (k: string) => string): string {
+export function messageByHttpStatus(n: number, gv: StringMap): string {
   const k = 'status_' + n;
-  let msg = gv(k);
+  let msg = gv[k];
   if (!msg || msg.length === 0) {
-    msg = gv('error_internal');
+    msg = gv['error_internal'];
   }
   return msg;
 }
-export function error(err: any, gv: (k: string) => string, ae: (msg: string, header?: string, detail?: string, callback?: () => void) => void): void {
-  const title = gv('error');
-  let msg = gv('error_internal');
+export function error(err: any, gv: StringMap, ae: (msg: string, header?: string, detail?: string, callback?: () => void) => void): void {
+  const title = gv['error'];
+  let msg = gv['error_internal'];
   if (!err) {
     ae(msg, title);
     return;
@@ -965,7 +965,7 @@ export function error(err: any, gv: (k: string) => string, ae: (msg: string, hea
 }
 export function handleError(err: any): void {
   const r = s.resource();
-  return error(err, r.value, s.alert);
+  return error(err, r.resource(), s.alert);
 }
 export interface ViewParameter {
   resource: Resource;
