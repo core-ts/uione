@@ -191,8 +191,8 @@ class s {
   static autoSearch = true;
   static navigator: any;
   static globalNavigator?: boolean;
-  private static _status: EditStatusConfig;
-  private static _diff: DiffStatusConfig;
+  // private static _status: EditStatusConfig;
+  // private static _diff: DiffStatusConfig;
   private static _user: UserAccount|null|undefined;
   private static _lang: string;
   private static _forms: Privilege[]|null|undefined;
@@ -213,6 +213,7 @@ class s {
   static getRedirectUrl(): string {
     return encodeURIComponent(s.redirectUrl);
   } */
+  /*
   static setStatus(c: EditStatusConfig, profile?: string): void {
     s._status = c;
   }
@@ -225,6 +226,7 @@ class s {
   static diff(profile?: string): DiffStatusConfig {
     return s._diff;
   }
+  */
   static setPrivileges(ps: Privilege[]|null|undefined): void {
     let f2 = ps;
     const x = new Map<string, Privilege>();
@@ -485,16 +487,19 @@ export class Gender {
   static Male = 'M';
   static Female = 'F';
 }
-export function isSubmitted(s: string): boolean {
+export function isSubmitted(s?: string): boolean {
   return s === Status.Submitted;
 }
-export function isApproved(s: string): boolean {
+export function afterSubmitted(s?: string): boolean {
+  return s === Status.Approved || s === Status.Published;
+}
+export function isApproved(s?: string): boolean {
   return s === Status.Approved;
 }
-export function isPublished(s: string): boolean {
+export function isPublished(s?: string): boolean {
   return s === Status.Published;
 }
-export function canSubmitted(s: string): boolean {
+export function canSubmit(s?: string): boolean {
   return s !== Status.Submitted && s !== Status.Approved && s !== Status.Published
 }
 export interface PermissionBuilder<T> {
@@ -693,6 +698,7 @@ export function focusFirstElement(form: HTMLFormElement): void {
     }
   }
 }
+/*
 export function status(profile?: string): EditStatusConfig {
   return s.status(profile);
 }
@@ -705,6 +711,7 @@ export function diff(profile?: string): DiffStatusConfig {
 export function setDiff(c: DiffStatusConfig, profile?: string): void {
   return s.setDiff(c, profile);
 }
+*/
 export function setUser(usr: UserAccount|undefined|null, profile?: string): void {
   s.setUser(usr, profile);
 }
@@ -996,6 +1003,7 @@ export function inputSearch(profile?: string): SearchParameter {
   };
   return i;
 }
+/*
 export interface EditStatusConfig {
   duplicate_key: number|string;
   not_found: number|string;
@@ -1004,6 +1012,7 @@ export interface EditStatusConfig {
   error?: number|string;
   data_corrupt?: number|string;
 }
+*/
 export interface EditParameter {
   resource: Resource;
   showMessage: (msg: string, option?: string) => void;
@@ -1012,7 +1021,7 @@ export interface EditParameter {
   ui?: UIService;
   getLocale?: (profile?: string) => Locale;
   loading?: LoadingService;
-  status?: EditStatusConfig;
+  // status?: EditStatusConfig;
 }
 export function inputEdit(profile?: string): EditParameter {
   const i: EditParameter = {
@@ -1023,22 +1032,24 @@ export function inputEdit(profile?: string): EditParameter {
     ui: s.ui(),
     getLocale: s.getLocale,
     loading: s.loading(),
-    status: s.status(profile),
+    // status: s.status(profile),
   };
   return i;
 }
+/*
 export interface DiffStatusConfig {
   not_found: number|string;
   success: number|string;
   version_error: number|string;
   error?: number|string;
 }
+*/
 export interface DiffParameter {
   resource: Resource;
   showMessage: (msg: string, option?: string) => void;
   showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
   loading?: LoadingService;
-  status?: DiffStatusConfig;
+  // status?: DiffStatusConfig;
 }
 export function inputDiff(profile?: string): DiffParameter {
   const i: DiffParameter = {
@@ -1046,7 +1057,7 @@ export function inputDiff(profile?: string): DiffParameter {
     showMessage: s.message,
     showError: s.alert,
     loading: s.loading(),
-    status: s.diff(profile)
+    // status: s.diff(profile)
   };
   return i;
 }
@@ -1080,6 +1091,7 @@ export function handleSelect(ele: HTMLSelectElement, attr?: string): void {
     ele.setAttribute(at, ele.value);
   }
 }
+/*
 export interface SessionData {
   token: string;
   data: string;
@@ -1089,6 +1101,7 @@ export interface SessionResponse {
   token: string;
   data: string;
 }
+*/
 export interface HttpRequest {
   get<T>(url: string, options?: { headers?: Headers; }): Promise<T>;
   delete<T>(url: string, options?: { headers?: Headers; }): Promise<T>;
@@ -1096,6 +1109,7 @@ export interface HttpRequest {
   put<T>(url: string, obj: any, options?: { headers?: Headers; }): Promise<T>;
   patch<T>(url: string, obj: any, options?: { headers?: Headers; }): Promise<T>;
 }
+/*
 export class SessionService<T, R> {
   constructor(public httpRequest: HttpRequest, public url: string, public url2: string) {
     this.createSession = this.createSession.bind(this);
@@ -1108,6 +1122,7 @@ export class SessionService<T, R> {
     return this.httpRequest.delete(this.url2, {headers:{authorization: sessionId}});
   }
 }
+*/
 export * from './locale';
 export * from './resource';
 export * from './ui';
