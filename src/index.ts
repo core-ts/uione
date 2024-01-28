@@ -22,7 +22,7 @@ export interface ModuleLoader {
   load(): Promise<Module[]>;
 }
 export interface Currency {
-  code?: string;
+  code: string;
   symbol: string;
   decimalDigits: number;
 }
