@@ -272,7 +272,9 @@ class s {
       return [];
     }
   }
-
+  static getStatusName(status?: string, m?: StringMap): string | undefined {
+    return status;
+  }
   static setLanguage(lang: string, profile?: string) {
     s._lang = lang;
   }
@@ -486,6 +488,9 @@ export class Status {
 export class Gender {
   static Male = 'M';
   static Female = 'F';
+}
+export function getStatusName(status?: string, m?: StringMap): string | undefined {
+  return s.getStatusName(status, m);
 }
 export function isSubmitted(s?: string): boolean {
   return s === Status.Submitted;
