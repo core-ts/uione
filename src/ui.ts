@@ -8,7 +8,7 @@ export interface ErrorMessage {
 
 export interface UIService {
   getValue(el: HTMLInputElement, locale?: Locale, currencyCode?: string): string|number|boolean|null|undefined;
-  decodeFromForm(form: HTMLFormElement, locale?: Locale, currencyCode?: string|null): any;
+  // decodeFromForm(form: HTMLFormElement, locale?: Locale, currencyCode?: string|null): any;
 
   validateForm(form?: HTMLFormElement, locale?: Locale, focusFirst?: boolean, scroll?: boolean): boolean;
   removeFormError(form: HTMLFormElement): void;

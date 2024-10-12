@@ -22,7 +22,7 @@ export interface ModuleLoader {
   load(): Promise<Module[]>;
 }
 export interface Currency {
-  code: string;
+  code?: string;
   symbol: string;
   decimalDigits: number;
 }
@@ -209,6 +209,10 @@ class s {
   static _sessionStorageAllowed = true;
   private static _initModel: any;
   private static _c: any;
+  static confirmHeader: string;
+  static errorHeader: string;
+  static yes: string;
+  static no: string;
 /*
   static getRedirectUrl(): string {
     return encodeURIComponent(s.redirectUrl);
@@ -565,7 +569,7 @@ export function trimPath(path: string): string {
   }
   let result = path.trim();
   if (result.endsWith('/')) {
-    result = result.substr(0, result.length - 1);
+    result = result.substring(0, result.length - 1);
   }
   return result;
 }
@@ -656,7 +660,7 @@ interface Headers {
 export function options(): Promise<{ headers?: Headers }> {
   return s.options();
 }
-export function initForm(form: HTMLFormElement, initMat?: (f: HTMLFormElement) => void): HTMLFormElement {
+export function initForm(form?: HTMLFormElement, initMat?: (f: HTMLFormElement) => void): HTMLFormElement | undefined {
   if (form) {
     if (!form.getAttribute('date-format')) {
       const df = s.getDateFormat();
@@ -796,12 +800,16 @@ export function message(msg: string, option?: string): void {
   s.message(msg, option);
 }
 export const showMessage = message;
-export function alert(msg: string, header?: string, detail?: string, callback?: () => void): void {
-  s.alert(msg, header, detail, callback);
+export function alert(msg: string, callback?: () => void, header?: string, detail?: string): void {
+  const h = (header == undefined ? s.errorHeader : header)
+  s.alert(msg, h, detail, callback);
 }
 export const showAlert = alert;
-export function confirm(msg: string, header: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void): void {
-  s.confirm(msg, header, yesCallback, btnLeftText, btnRightText, noCallback);
+export function confirm(msg: string, yesCallback?: () => void, header?: string, btnLeftText?: string, btnRightText?: string, noCallback?: () => void): void {
+  const h = (header == undefined ? s.confirmHeader : header)
+  const n = (btnLeftText == undefined ? s.no : btnLeftText)
+  const y = (btnRightText == undefined ? s.yes : btnRightText)
+  s.confirm(msg, h, yesCallback, n, y, noCallback);
 }
 export const showConfirm = confirm;
 export function getResource(profile?: string): Resource {

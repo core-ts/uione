@@ -1,5 +1,5 @@
 export interface Locale {
-  id: string;
+  id?: string;
   countryCode: string;
   dateFormat: string;
   firstDayOfWeek: number;
