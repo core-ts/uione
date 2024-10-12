@@ -200,8 +200,8 @@ class s {
   private static _resources: Resources;
   private static _load: LoadingService;
   static message: (msg: string, option?: string) => void;
-  static alert: (msg: string, header?: string, detail?: string, callback?: () => void) => void;
-  static confirm: (msg: string, header?: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
+  static alert: (msg: string, callback?: () => void, header?: string, detail?: string) => void;
+  static confirm: (msg: string, yesCallback?: () => void, header?: string, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
   static locale: (id: string) => Locale|undefined;
   static currency: (currencyCode: string) => Currency|undefined;
   private static _rs: Resource = new ResourceService();
@@ -209,10 +209,12 @@ class s {
   static _sessionStorageAllowed = true;
   private static _initModel: any;
   private static _c: any;
+  /*
   static confirmHeader: string;
   static errorHeader: string;
   static yes: string;
   static no: string;
+*/
 /*
   static getRedirectUrl(): string {
     return encodeURIComponent(s.redirectUrl);
@@ -801,15 +803,11 @@ export function message(msg: string, option?: string): void {
 }
 export const showMessage = message;
 export function alert(msg: string, callback?: () => void, header?: string, detail?: string): void {
-  const h = (header == undefined ? s.errorHeader : header)
-  s.alert(msg, h, detail, callback);
+  s.alert(msg, callback, header, detail);
 }
 export const showAlert = alert;
 export function confirm(msg: string, yesCallback?: () => void, header?: string, btnLeftText?: string, btnRightText?: string, noCallback?: () => void): void {
-  const h = (header == undefined ? s.confirmHeader : header)
-  const n = (btnLeftText == undefined ? s.no : btnLeftText)
-  const y = (btnRightText == undefined ? s.yes : btnRightText)
-  s.confirm(msg, h, yesCallback, n, y, noCallback);
+  s.confirm(msg, yesCallback, header, btnLeftText, btnRightText, noCallback);
 }
 export const showConfirm = confirm;
 export function getResource(profile?: string): Resource {
@@ -958,11 +956,11 @@ export function messageByHttpStatus(n: number, gv: StringMap): string {
   }
   return msg;
 }
-export function error(err: any, gv: StringMap, ae: (msg: string, header?: string, detail?: string, callback?: () => void) => void): void {
+export function error(err: any, gv: StringMap, ae: (msg: string, callback?: () => void, header?: string, detail?: string) => void): void {
   const title = gv['error'];
   let msg = gv['error_internal'];
   if (!err) {
-    ae(msg, title);
+    ae(msg, undefined, title);
     return;
   }
   const data = err && err.response ? err.response : err;
@@ -971,9 +969,9 @@ export function error(err: any, gv: StringMap, ae: (msg: string, header?: string
     if (st && !isNaN(st)) {
       msg = messageByHttpStatus(st, gv);
     }
-    ae(msg, title);
+    ae(msg, undefined, title);
   } else {
-    ae(msg, title);
+    ae(msg, undefined, title);
   }
 }
 export function handleError(err: any): void {
@@ -982,7 +980,7 @@ export function handleError(err: any): void {
 }
 export interface ViewParameter {
   resource: Resource;
-  showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
+  showError: (m: string, callback?: () => void, header?: string, detail?: string) => void;
   getLocale?: (profile?: string) => Locale;
   loading?: LoadingService;
 }
@@ -998,7 +996,7 @@ export function inputView(): ViewParameter {
 export interface SearchParameter {
   resource: Resource;
   showMessage: (msg: string, option?: string) => void;
-  showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
+  showError: (m: string, callback?: () => void, header?: string, detail?: string) => void;
   ui?: UIService;
   getLocale?: (profile?: string) => Locale;
   loading?: LoadingService;
@@ -1029,8 +1027,8 @@ export interface EditStatusConfig {
 export interface EditParameter {
   resource: Resource;
   showMessage: (msg: string, option?: string) => void;
-  showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
-  confirm: (m2: string, header?: string, yesCallback?: () => void, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
+  showError: (m: string, callback?: () => void, header?: string, detail?: string) => void;
+  confirm: (m2: string, yesCallback?: () => void, header?: string, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
   ui?: UIService;
   getLocale?: (profile?: string) => Locale;
   loading?: LoadingService;
@@ -1060,7 +1058,7 @@ export interface DiffStatusConfig {
 export interface DiffParameter {
   resource: Resource;
   showMessage: (msg: string, option?: string) => void;
-  showError: (m: string, header?: string, detail?: string, callback?: () => void) => void;
+  showError: (m: string, callback?: () => void, header?: string, detail?: string) => void;
   loading?: LoadingService;
   // status?: DiffStatusConfig;
 }
