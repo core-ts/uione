@@ -949,16 +949,16 @@ export function checkPatternOnBlur(e: Event|any): void {
   }
 }
 export function messageByHttpStatus(n: number, gv: StringMap): string {
-  const k = 'status_' + n;
+  const k = 'error_' + n;
   let msg = gv[k];
   if (!msg || msg.length === 0) {
-    msg = gv['error_internal'];
+    msg = gv['error_500'];
   }
   return msg;
 }
 export function error(err: any, gv: StringMap, ae: (msg: string, callback?: () => void, header?: string, detail?: string) => void): void {
   const title = gv['error'];
-  let msg = gv['error_internal'];
+  let msg = gv['error_500'];
   if (!err) {
     ae(msg, undefined, title);
     return;
