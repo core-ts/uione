@@ -609,69 +609,7 @@ interface Headers {
 export function options(): Promise<{ headers?: Headers }> {
   return s.options();
 }
-export function initForm(form?: HTMLFormElement, initMat?: (f: HTMLFormElement) => void): HTMLFormElement | undefined {
-  if (form) {
-    if (!form.getAttribute('date-format')) {
-      const df = s.getDateFormat();
-      form.setAttribute('date-format', df);
-    }
-    setTimeout(() => {
-      if (initMat) {
-        initMat(form);
-      }
-      focusFirstElement(form);
-    }, 100);
-  }
-  return form;
-}
-export function focusFirstElement(form: HTMLFormElement): void {
-  let i = 0;
-  const len = form.length;
-  for (i = 0; i < len; i++) {
-    const ctrl = form[i] as HTMLInputElement;
-    if (!(ctrl.readOnly || ctrl.disabled)) {
-      let nodeName = ctrl.nodeName;
-      const type = ctrl.getAttribute('type');
-      if (type) {
-        const t = type.toUpperCase();
-        if (t === 'BUTTON' || t === 'SUBMIT') {
-          ctrl.focus();
-        }
-        if (nodeName === 'INPUT') {
-          nodeName = t;
-        }
-      }
-      if (nodeName !== 'BUTTON'
-        && nodeName !== 'RESET'
-        && nodeName !== 'SUBMIT'
-        && nodeName !== 'CHECKBOX'
-        && nodeName !== 'RADIO') {
-        ctrl.focus();
-        /*
-        try {
-          ctrl.setSelectionRange(0, ctrl.value.length);
-        } catch (err) {
-        }
-        */
-        return;
-      }
-    }
-  }
-}
-/*
-export function status(profile?: string): EditStatusConfig {
-  return s.status(profile);
-}
-export function setStatus(c: EditStatusConfig, profile?: string): void {
-  return s.setStatus(c, profile);
-}
-export function diff(profile?: string): DiffStatusConfig {
-  return s.diff(profile);
-}
-export function setDiff(c: DiffStatusConfig, profile?: string): void {
-  return s.setDiff(c, profile);
-}
-*/
+
 export function setUser(usr: UserAccount|undefined|null, profile?: string): void {
   s.setUser(usr, profile);
 }
