@@ -1,18 +1,7 @@
 import {Locale} from './locale';
 import {Resource, StringMap} from './resource';
 import {UIService} from './ui';
-/*
-export enum Status {
-  Active = 'A',
-  Inactive = 'I',
-  Deactivated = 'D',
-  Deleted = 'D'
-}
-export enum Gender {
-  Male = 'M',
-  Female = 'F'
-}
-*/
+
 export interface Module {
   id?: string|number;
   path?: string;
@@ -134,51 +123,9 @@ export interface LoadingService {
 export class ResourceService implements Resource {
   constructor() {
     this.resource = this.resource.bind(this);
-    this.value = this.value.bind(this);
-    this.format = this.format.bind(this);
   }
   resource(): StringMap {
     return s.getResource();
-  }
-  value(key: string, param?: any): string {
-    const r = this.resource();
-    if (!r) {
-      return '';
-    }
-    const str = r[key];
-    if (!str || str.length === 0) {
-      return str;
-    }
-    if (!param) {
-      return str;
-    }
-    if (typeof param === 'string') {
-      let paramValue = r[param];
-      if (!paramValue) {
-        paramValue = param;
-      }
-      return this.format(str, paramValue);
-    }
-    return this.format(str, param);
-  }
-  format(...args: any[]): string {
-    let formatted = args[0];
-    if (!formatted || formatted === '') {
-      return '';
-    }
-    if (args.length > 1 && Array.isArray(args[1])) {
-      const params = args[1];
-      for (let i = 0; i < params.length; i++) {
-        const regexp = new RegExp('\\{' + i + '\\}', 'gi');
-        formatted = formatted.replace(regexp, params[i]);
-      }
-    } else {
-      for (let i = 1; i < args.length; i++) {
-        const regexp = new RegExp('\\{' + (i - 1) + '\\}', 'gi');
-        formatted = formatted.replace(regexp, args[i]);
-      }
-    }
-    return formatted;
   }
 }
 
@@ -821,146 +768,18 @@ export function loading(): LoadingService {
 export function ui(): UIService {
   return s.ui();
 }
-export function removeError(el: HTMLInputElement): void {
-  const u = s.ui();
-  if (u) {
-    u.removeError(el);
-  }
-}
-export function getValue(el: HTMLInputElement, lc?: Locale, currencyCode?: string): string|number|boolean|null|undefined {
-  const u = s.ui();
-  if (u) {
-    return u.getValue(el, lc, currencyCode);
-  } else {
-    return el.value;
-  }
-}
-export function registerEvents(form: HTMLFormElement): void {
-  const u = s.ui();
-  if (u && form && u.registerEvents) {
-    u.registerEvents(form);
-  }
-}
 
-export function numberOnFocus(e: Event|any, lc?: Locale): void {
-  e.preventDefault();
-  if (!lc) {
-    lc = s.getLocale();
-  }
-  const u = s.ui();
-  if (u && u.numberOnFocus) {
-    u.numberOnFocus(e, lc);
-  }
-}
-export function numberOnBlur(e: Event|any, lc?: Locale): void {
-  e.preventDefault();
-  if (!lc) {
-    lc = s.getLocale();
-  }
-  const u = s.ui();
-  if (u && u.numberOnBlur) {
-    u.numberOnBlur(e, lc);
-  }
-}
-export function percentageOnFocus(e: Event|any, lc?: Locale): void {
-  e.preventDefault();
-  if (!lc) {
-    lc = s.getLocale();
-  }
-  const u = s.ui();
-  if (u && u.percentageOnFocus) {
-    u.percentageOnFocus(e, lc);
-  }
-}
-export function currencyOnFocus(e: Event|any, lc?: Locale, currencyCode?: string): void {
-  e.preventDefault();
-  if (!lc) {
-    lc = s.getLocale();
-  }
-  if (!currencyCode) {
-    const ctrl = e.currentTarget as HTMLInputElement;
-    let x = ctrl.getAttribute('currency-code');
-    if (!x && ctrl.form) {
-      x = ctrl.form.getAttribute('currency-code');
-    }
-    currencyCode = (x == null ? undefined : x);
-  }
-  const u = s.ui();
-  if (u && u.currencyOnFocus) {
-    u.currencyOnFocus(e, lc, currencyCode);
-  }
-}
-export function currencyOnBlur(e: Event|any, lc?: Locale, currencyCode?: string, includingCurrencySymbol?: boolean): void {
-  e.preventDefault();
-  if (!lc) {
-    lc = s.getLocale();
-  }
-  if (!currencyCode) {
-    const ctrl = e.currentTarget as HTMLInputElement;
-    let x = ctrl.getAttribute('currency-code');
-    if (!x && ctrl.form) {
-      x = ctrl.form.getAttribute('currency-code');
-    }
-    currencyCode = (x == null ? undefined : x);
-  }
-  const u = s.ui();
-  if (u && u.currencyOnBlur) {
-    u.currencyOnBlur(e, lc, currencyCode, includingCurrencySymbol);
-  }
-}
-export function emailOnBlur(e: Event|any): void {
-  e.preventDefault();
-  const u = s.ui();
-  if (u && u.emailOnBlur) {
-    u.emailOnBlur(e);
-  }
-}
-export function urlOnBlur(e: Event|any): void {
-  e.preventDefault();
-  const u = s.ui();
-  if (u && u.urlOnBlur) {
-    u.urlOnBlur(e);
-  }
-}
-export function phoneOnBlur(e: Event|any): void {
-  e.preventDefault();
-  const u = s.ui();
-  if (u && u.phoneOnBlur) {
-    u.phoneOnBlur(e);
-  }
-}
-export function faxOnBlur(e: Event|any): void {
-  e.preventDefault();
-  const u = s.ui();
-  if (u && u.faxOnBlur) {
-    u.faxOnBlur(e);
-  }
-}
-export function requiredOnBlur(e: Event|any): void {
-  e.preventDefault();
-  const u = s.ui();
-  if (u && u.requiredOnBlur) {
-    u.requiredOnBlur(e);
-  }
-}
-export function checkPatternOnBlur(e: Event|any): void {
-  e.preventDefault();
-  const u = s.ui();
-  if (u && u.patternOnBlur) {
-    u.patternOnBlur(e);
-  }
-}
-export function messageByHttpStatus(n: number, gv: StringMap): string {
+export function messageByHttpStatus(n: number, r: StringMap): string {
   const k = 'error_' + n;
-  let msg = gv[k];
+  let msg = r[k];
   if (!msg || msg.length === 0) {
-    msg = gv['error_500'];
+    msg = r.error_500;
   }
   return msg;
 }
-export function error(err: any, gv: StringMap, ae: (msg: string, callback?: () => void, header?: string, detail?: string) => void): void {
-  const title = gv['error'];
-  let msg = gv['error_500'];
+export function error(err: any, r: StringMap, ae: (msg: string, callback?: () => void, header?: string, detail?: string) => void): void {
+  const title = r.error;
+  let msg = r.error_500;
   if (!err) {
     ae(msg, undefined, title);
     return;
@@ -969,7 +788,7 @@ export function error(err: any, gv: StringMap, ae: (msg: string, callback?: () =
   if (data) {
     const st = data.status;
     if (st && !isNaN(st)) {
-      msg = messageByHttpStatus(st, gv);
+      msg = messageByHttpStatus(st, r);
     }
     ae(msg, undefined, title);
   } else {
@@ -980,21 +799,7 @@ export function handleError(err: any): void {
   const r = s.resource();
   return error(err, r.resource(), s.alert);
 }
-export interface ViewParameter {
-  resource: Resource;
-  showError: (m: string, callback?: () => void, header?: string, detail?: string) => void;
-  getLocale?: (profile?: string) => Locale;
-  loading?: LoadingService;
-}
-export function inputView(): ViewParameter {
-  const i: ViewParameter = {
-    resource: s.resource(),
-    showError: s.alert,
-    getLocale: s.getLocale,
-    loading: s.loading()
-  };
-  return i;
-}
+
 export interface SearchParameter {
   resource: Resource;
   showMessage: (msg: string, option?: string) => void;
@@ -1016,16 +821,7 @@ export function inputSearch(profile?: string): SearchParameter {
   };
   return i;
 }
-/*
-export interface EditStatusConfig {
-  duplicate_key: number|string;
-  not_found: number|string;
-  success: number|string;
-  version_error: number|string;
-  error?: number|string;
-  data_corrupt?: number|string;
-}
-*/
+
 export interface EditParameter {
   resource: Resource;
   showMessage: (msg: string, option?: string) => void;
@@ -1034,7 +830,6 @@ export interface EditParameter {
   ui?: UIService;
   getLocale?: (profile?: string) => Locale;
   loading?: LoadingService;
-  // status?: EditStatusConfig;
 }
 export function inputEdit(profile?: string): EditParameter {
   const i: EditParameter = {
@@ -1045,24 +840,15 @@ export function inputEdit(profile?: string): EditParameter {
     ui: s.ui(),
     getLocale: s.getLocale,
     loading: s.loading(),
-    // status: s.status(profile),
   };
   return i;
 }
-/*
-export interface DiffStatusConfig {
-  not_found: number|string;
-  success: number|string;
-  version_error: number|string;
-  error?: number|string;
-}
-*/
+
 export interface DiffParameter {
   resource: Resource;
   showMessage: (msg: string, option?: string) => void;
   showError: (m: string, callback?: () => void, header?: string, detail?: string) => void;
   loading?: LoadingService;
-  // status?: DiffStatusConfig;
 }
 export function inputDiff(profile?: string): DiffParameter {
   const i: DiffParameter = {
@@ -1070,7 +856,6 @@ export function inputDiff(profile?: string): DiffParameter {
     showMessage: s.message,
     showError: s.alert,
     loading: s.loading(),
-    // status: s.diff(profile)
   };
   return i;
 }
@@ -1104,17 +889,7 @@ export function handleSelect(ele: HTMLSelectElement, attr?: string): void {
     ele.setAttribute(at, ele.value);
   }
 }
-/*
-export interface SessionData {
-  token: string;
-  data: string;
-  ref: string;
-}
-export interface SessionResponse {
-  token: string;
-  data: string;
-}
-*/
+
 export interface HttpRequest {
   get<T>(url: string, options?: { headers?: Headers; }): Promise<T>;
   delete<T>(url: string, options?: { headers?: Headers; }): Promise<T>;
@@ -1122,20 +897,7 @@ export interface HttpRequest {
   put<T>(url: string, obj: any, options?: { headers?: Headers; }): Promise<T>;
   patch<T>(url: string, obj: any, options?: { headers?: Headers; }): Promise<T>;
 }
-/*
-export class SessionService<T, R> {
-  constructor(public httpRequest: HttpRequest, public url: string, public url2: string) {
-    this.createSession = this.createSession.bind(this);
-    this.deleteSession = this.deleteSession.bind(this);
-  }
-  createSession(data: T): Promise<R> {
-    return this.httpRequest.post(this.url, data);
-  }
-  deleteSession(sessionId: string): Promise<number> {
-    return this.httpRequest.delete(this.url2, {headers:{authorization: sessionId}});
-  }
-}
-*/
+
 export * from './locale';
 export * from './resource';
 export * from './ui';
