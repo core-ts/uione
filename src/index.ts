@@ -689,7 +689,7 @@ export function message(msg: string, option?: string): void {
   s.message(msg, option);
 }
 export const showMessage = message;
-export function alert(msg: string, callback?: () => void, header?: string, detail?: string): void {
+export function alert(msg: string, header?: string, callback?: () => void, detail?: string): void {
   s.alert(msg, callback, header, detail);
 }
 export const showAlert = alert;
