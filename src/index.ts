@@ -739,7 +739,6 @@ export function handleError(err: any): void {
 }
 
 export interface SearchParameter {
-  resource: Resource;
   showMessage: (msg: string, option?: string) => void;
   showError: (m: string, callback?: () => void, header?: string, detail?: string) => void;
   ui?: UIService;
@@ -749,7 +748,6 @@ export interface SearchParameter {
 }
 export function inputSearch(profile?: string): SearchParameter {
   const i: SearchParameter = {
-    resource: s.resource(profile),
     showMessage: s.message,
     showError: s.alert,
     ui: s.ui(),
@@ -761,7 +759,6 @@ export function inputSearch(profile?: string): SearchParameter {
 }
 
 export interface EditParameter {
-  resource: Resource;
   showMessage: (msg: string, option?: string) => void;
   showError: (m: string, callback?: () => void, header?: string, detail?: string) => void;
   confirm: (m2: string, yesCallback?: () => void, header?: string, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
@@ -771,7 +768,6 @@ export interface EditParameter {
 }
 export function inputEdit(profile?: string): EditParameter {
   const i: EditParameter = {
-    resource: s.resource(profile),
     showMessage: s.message,
     showError: s.alert,
     confirm: s.confirm,
@@ -782,21 +778,6 @@ export function inputEdit(profile?: string): EditParameter {
   return i;
 }
 
-export interface DiffParameter {
-  resource: Resource;
-  showMessage: (msg: string, option?: string) => void;
-  showError: (m: string, callback?: () => void, header?: string, detail?: string) => void;
-  loading?: LoadingService;
-}
-export function inputDiff(profile?: string): DiffParameter {
-  const i: DiffParameter = {
-    resource: s.resource(profile),
-    showMessage: s.message,
-    showError: s.alert,
-    loading: s.loading(),
-  };
-  return i;
-}
 const g = 0.017453292519943295;  // Math.PI / 180
 const co = Math.cos;
 export function distance(lat1: number, lon1: number, lat2: number, lon2: number): number {
