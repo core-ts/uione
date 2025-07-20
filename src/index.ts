@@ -147,7 +147,7 @@ class s {
   private static _resources: Resources;
   private static _load: LoadingService;
   static message: (msg: string, option?: string) => void;
-  static alert: (msg: string, callback?: () => void, header?: string, detail?: string) => void;
+  static alert: (msg: string, header?: string, callback?: () => void, detail?: string) => void;
   static confirm: (msg: string, yesCallback?: () => void, header?: string, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
   static locale: (id: string) => Locale|undefined;
   static currency: (currencyCode: string) => Currency|undefined;
@@ -690,7 +690,7 @@ export function message(msg: string, option?: string): void {
 }
 export const showMessage = message;
 export function alert(msg: string, header?: string, callback?: () => void, detail?: string): void {
-  s.alert(msg, callback, header, detail);
+  s.alert(msg, header, callback, detail);
 }
 export const showAlert = alert;
 export function confirm(msg: string, yesCallback?: () => void, header?: string, btnLeftText?: string, btnRightText?: string, noCallback?: () => void): void {
@@ -715,11 +715,11 @@ export function messageByHttpStatus(n: number, r: StringMap): string {
   }
   return msg;
 }
-export function error(err: any, r: StringMap, ae: (msg: string, callback?: () => void, header?: string, detail?: string) => void): void {
+export function error(err: any, r: StringMap, ae: (msg: string, header?: string, callback?: () => void, detail?: string) => void): void {
   const title = r.error;
   let msg = r.error_500;
   if (!err) {
-    ae(msg, undefined, title);
+    ae(msg, title);
     return;
   }
   const data = err && err.response ? err.response : err;
@@ -728,9 +728,9 @@ export function error(err: any, r: StringMap, ae: (msg: string, callback?: () =>
     if (st && !isNaN(st)) {
       msg = messageByHttpStatus(st, r);
     }
-    ae(msg, undefined, title);
+    ae(msg, title);
   } else {
-    ae(msg, undefined, title);
+    ae(msg, title);
   }
 }
 export function handleError(err: any): void {
@@ -741,7 +741,7 @@ export function handleError(err: any): void {
 export interface SearchParameter {
   resource: Resource;
   showMessage: (msg: string, option?: string) => void;
-  showError: (m: string, callback?: () => void, header?: string, detail?: string) => void;
+  showError: (m: string, header?: string, callback?: () => void, detail?: string) => void;
   ui?: UIService;
   getLocale?: (profile?: string) => Locale;
   loading?: LoadingService;
@@ -763,7 +763,7 @@ export function inputSearch(profile?: string): SearchParameter {
 export interface EditParameter {
   resource: Resource;
   showMessage: (msg: string, option?: string) => void;
-  showError: (m: string, callback?: () => void, header?: string, detail?: string) => void;
+  showError: (m: string, header?: string, callback?: () => void, detail?: string) => void;
   confirm: (m2: string, yesCallback?: () => void, header?: string, btnLeftText?: string, btnRightText?: string, noCallback?: () => void) => void;
   ui?: UIService;
   getLocale?: (profile?: string) => Locale;
@@ -785,7 +785,7 @@ export function inputEdit(profile?: string): EditParameter {
 export interface DiffParameter {
   resource: Resource;
   showMessage: (msg: string, option?: string) => void;
-  showError: (m: string, callback?: () => void, header?: string, detail?: string) => void;
+  showError: (m: string, header?: string, callback?: () => void, detail?: string) => void;
   loading?: LoadingService;
 }
 export function inputDiff(profile?: string): DiffParameter {
