@@ -7,10 +7,10 @@ export interface ErrorMessage {
 }
 
 export interface UIService {
-  validateForm(form?: HTMLFormElement, locale?: Locale, focusFirst?: boolean, scroll?: boolean): boolean;
+  validateForm(form?: HTMLFormElement | null, locale?: Locale, focusFirst?: boolean, scroll?: boolean): boolean;
   removeFormError(form: HTMLFormElement): void;
-  removeError(el: HTMLInputElement): void;
-  showFormError(form?: HTMLFormElement, errors?: ErrorMessage[], focusFirst?: boolean): ErrorMessage[];
+  removeError(el?: HTMLInputElement | null): void;
+  showFormError(form?: HTMLFormElement | null, errors?: ErrorMessage[], focusFirst?: boolean): ErrorMessage[];
   buildErrorMessage(errors: ErrorMessage[]): string;
 
   registerEvents?(form: HTMLFormElement): void;
