@@ -248,7 +248,7 @@ class s {
       }
     }
   }
-  static user(profile?: string): UserAccount|null|undefined {
+  static getUser(profile?: string): UserAccount|null|undefined {
     let u = s._user;
     if (!u) {
       if (s._sessionStorageAllowed) {
@@ -266,19 +266,19 @@ class s {
     return u;
   }
   static getUserId(profile?: string): string|undefined {
-    const u = s.user(profile);
+    const u = s.getUser(profile);
     return (!u ? '' : u.id);
   }
-  static username(profile?: string): string|undefined {
-    const u = s.user(profile);
+  static getUsername(profile?: string): string|undefined {
+    const u = s.getUser(profile);
     return (!u ? '' : u.username);
   }
-  static token(profile?: string): Promise<string|undefined> {
-    const u = s.user(profile);
+  static getToken(profile?: string): Promise<string|undefined> {
+    const u = s.getUser(profile);
     return Promise.resolve(!u ? undefined : u.token);
   }
-  static options(profile?: string): Promise<{ headers?: Headers }> {
-    return s.token().then(t => {
+  static getOptions(profile?: string): Promise<{ headers?: Headers }> {
+    return s.getToken().then(t => {
       if (t) {
         return {
           headers: {
@@ -296,11 +296,11 @@ class s {
     });
   }
   static getUserType(profile?: string): string|undefined {
-    const u = s.user(profile);
+    const u = s.getUser(profile);
     return (!u ? undefined : u.userType);
   }
   static getDateFormat(profile?: string): string {
-    const u = s.user(profile);
+    const u = s.getUser(profile);
     let lang: string|undefined;
     if (u) {
       if (u.dateFormat) {
@@ -325,7 +325,7 @@ class s {
     if (l && l.length > 0) {
       return l;
     }
-    const u = s.user(profile);
+    const u = s.getUser(profile);
     if (u && u.language) {
       return u.language;
     } else {
@@ -430,13 +430,16 @@ class s {
 }
 export const storage = s;
 export class Status {
+  static Draft = 'D';
   static Submitted = 'S';
+  static Rejected = 'R';
   static Approved = 'A';
   static Published = 'P';
+  static Expired = 'E';
   static Active = 'A';
-  static Deleted = 'D';
-  static Deativated = 'D';
   static Inactive = 'I';
+  static Deativated = 'D';
+  static Deleted = 'D';
 }
 export class Gender {
   static Male = 'M';
@@ -460,44 +463,9 @@ export function isPublished(s?: string): boolean {
 export function canSubmit(s?: string): boolean {
   return s !== Status.Submitted && s !== Status.Approved && s !== Status.Published
 }
-export interface PermissionBuilder<T> {
-  buildPermission(user: UserAccount, url: string): T;
-}
-export interface EditPermission {
-  addable?: boolean;
-  readOnly?: boolean;
-  deletable?: boolean;
-}
-export interface SearchPermission {
-  viewable?: boolean;
-  addable?: boolean;
-  editable?: boolean;
-  deletable?: boolean;
-  approvable?: boolean;
-}
-export interface EditPermissionBuilder extends PermissionBuilder<EditPermission> {
-}
-export interface SearchPermissionBuilder extends PermissionBuilder<SearchPermission> {
-}
-export function setSearchPermission(c: SearchPermission, p: SearchPermission): void {
-  if (c && p) {
-    c.viewable = p.viewable;
-    c.addable = p.addable;
-    c.editable = p.editable;
-    c.approvable = p.approvable;
-    c.deletable = p.deletable;
-  }
-}
-export function setEditPermission(c: EditPermission, p: EditPermission): void {
-  if (c && p) {
-    c.addable = p.addable;
-    c.readOnly = p.readOnly;
-    c.deletable = p.deletable;
-  }
-}
 
 export function authenticated(): boolean {
-  const usr = s.user();
+  const usr = s.getUser();
   return (usr ? true : false);
 }
 export function authorized(path: string, exact?: boolean): boolean {
@@ -606,10 +574,10 @@ export function hasPrivilege(ps: Privilege[]|Map<string, Privilege>, path: strin
 interface Headers {
   [key: string]: any;
 }
-export function options(): Promise<{ headers?: Headers }> {
-  return s.options();
+export function getOptions(): Promise<{ headers?: Headers }> {
+  return s.getOptions();
 }
-
+export const options = getOptions
 export function setUser(usr: UserAccount|undefined|null, profile?: string): void {
   s.setUser(usr, profile);
 }
@@ -632,7 +600,7 @@ export function getPrivileges(): Privilege[] {
   return s.privileges();
 }
 export function user(profile?: string): UserAccount|null|undefined {
-  return s.user(profile);
+  return s.getUser(profile);
 }
 export const getUser = user;
 export const useUser = user;
@@ -641,7 +609,7 @@ export function resource(profile?: string): StringMap {
 }
 export const useResource = resource;
 export function username(profile?: string) {
-  return s.username(profile);
+  return s.getUsername(profile);
 }
 export const getUsername = username;
 export const useUsername = username;
@@ -650,7 +618,7 @@ export function getUserType(profile?: string) {
 }
 export const useUserType = getUserType;
 export function token(profile?: string): Promise<string|undefined> {
-  return s.token(profile);
+  return s.getToken(profile);
 }
 export const getToken = token;
 export const useToken = token;
