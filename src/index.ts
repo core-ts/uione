@@ -234,6 +234,9 @@ class s {
   static canApprove(s?: string): boolean {
     return s === Status.Submitted;
   }
+  static isSubmitted(s?: string): boolean {
+    return s === Status.Submitted;
+  }
   static afterSubmitted(s?: string): boolean {
     return s === Status.Approved || s === Status.Published;
   }
@@ -475,6 +478,9 @@ export function getFlowStatusName(status?: string, m?: StringMap): string | unde
 }
 export function canApprove(status?: string): boolean {
   return s.canApprove(status)
+}
+export function isSubmitted(status?: string): boolean {
+  return s.isSubmitted(status)
 }
 export function afterSubmitted(status?: string): boolean {
   return s.afterSubmitted(status)
