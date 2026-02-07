@@ -228,6 +228,27 @@ class s {
   static getStatusName(status?: string, m?: StringMap): string | undefined {
     return status;
   }
+  static getFlowStatusName(status?: string, m?: StringMap): string | undefined {
+    return status;
+  }
+  static canApprove(s?: string): boolean {
+    return s === Status.Submitted;
+  }
+  static afterSubmitted(s?: string): boolean {
+    return s === Status.Approved || s === Status.Published;
+  }
+  static isApproved(s?: string): boolean {
+    return s === Status.Approved;
+  }
+  static canPublish(s?: string): boolean {
+    return s === Status.Approved;
+  }
+  static isPublished(s?: string): boolean {
+    return s === Status.Published;
+  }
+  static canSubmit(s?: string): boolean {
+    return s !== Status.Submitted && s !== Status.Approved && s !== Status.Published && s !== Status.Expired
+  }
   static setLanguage(lang: string, profile?: string) {
     s._lang = lang;
   }
@@ -436,6 +457,7 @@ export class Status {
   static Approved = 'A';
   static Published = 'P';
   static Expired = 'E';
+  static RequestToEdit = 'T';
   static Active = 'A';
   static Inactive = 'I';
   static Deativated = 'D';
@@ -448,20 +470,26 @@ export class Gender {
 export function getStatusName(status?: string, m?: StringMap): string | undefined {
   return s.getStatusName(status, m);
 }
-export function isSubmitted(s?: string): boolean {
-  return s === Status.Submitted;
+export function getFlowStatusName(status?: string, m?: StringMap): string | undefined {
+  return s.getFlowStatusName(status, m);
 }
-export function afterSubmitted(s?: string): boolean {
-  return s === Status.Approved || s === Status.Published;
+export function canApprove(status?: string): boolean {
+  return s.canApprove(status)
 }
-export function isApproved(s?: string): boolean {
-  return s === Status.Approved;
+export function afterSubmitted(status?: string): boolean {
+  return s.afterSubmitted(status)
 }
-export function isPublished(s?: string): boolean {
-  return s === Status.Published;
+export function isApproved(status?: string): boolean {
+  return s.isApproved(status)
 }
-export function canSubmit(s?: string): boolean {
-  return s !== Status.Submitted && s !== Status.Approved && s !== Status.Published
+export function canPublish(status?: string): boolean {
+  return s.canPublish(status)
+}
+export function isPublished(status?: string): boolean {
+  return s.isPublished(status)
+}
+export function canSubmit(status?: string): boolean {
+  return s.canSubmit(status)
 }
 
 export function authenticated(): boolean {
