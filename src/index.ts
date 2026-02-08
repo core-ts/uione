@@ -225,6 +225,9 @@ class s {
       return [];
     }
   }
+  static getActionName(action?: string, m?: StringMap): string | undefined {
+    return action;
+  }
   static getStatusName(status?: string, m?: StringMap): string | undefined {
     return status;
   }
@@ -469,6 +472,9 @@ export class Status {
 export class Gender {
   static Male = 'M';
   static Female = 'F';
+}
+export function getActionName(action?: string, m?: StringMap): string | undefined {
+  return s.getActionName(action, m)
 }
 export function getStatusName(status?: string, m?: StringMap): string | undefined {
   return s.getStatusName(status, m);
