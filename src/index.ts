@@ -234,8 +234,14 @@ class s {
   static getFlowStatusName(status?: string, m?: StringMap): string | undefined {
     return status;
   }
+  static canUpdate(s?: string): boolean {
+    return s!== Status.Approved && s!== Status.Expired
+  }
   static canApprove(s?: string): boolean {
     return s === Status.Submitted;
+  }
+  static canReject(s?: string): boolean {
+    return s === Status.Submitted || s === Status.Approved
   }
   static isSubmitted(s?: string): boolean {
     return s === Status.Submitted;
@@ -482,8 +488,14 @@ export function getStatusName(status?: string, m?: StringMap): string | undefine
 export function getFlowStatusName(status?: string, m?: StringMap): string | undefined {
   return s.getFlowStatusName(status, m);
 }
+export function canUpdate(status?: string): boolean {
+  return s.canUpdate(status)
+}
 export function canApprove(status?: string): boolean {
   return s.canApprove(status)
+}
+export function canReject(status?: string): boolean {
+  return s.canReject(status)
 }
 export function isSubmitted(status?: string): boolean {
   return s.isSubmitted(status)
