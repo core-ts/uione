@@ -140,9 +140,10 @@ class s {
   static globalNavigator?: boolean;
   // private static _status: EditStatusConfig;
   // private static _diff: DiffStatusConfig;
-  private static _user: UserAccount|null|undefined;
+  private static _user?: UserAccount|null;
+  private static _token?: string|null;
   private static _lang: string;
-  private static _forms: Privilege[]|null|undefined;
+  private static _forms?: Privilege[]|null;
   private static _privileges: Map<string,Privilege>;// PrivilegeMap;
   private static _resources: Resources;
   private static _load: LoadingService;
@@ -298,6 +299,36 @@ class s {
     }
     return u;
   }
+  static setToken(token?: string|null, profile?: string): void {
+    s._token = token
+    if (s._sessionStorageAllowed) {
+      try {
+        if (token) {
+          sessionStorage.setItem('token', token);
+        } else {
+          sessionStorage.removeItem('token');
+        }
+      } catch (err) {
+        s._sessionStorageAllowed = false;
+      }
+    }
+  }
+  static getToken(profile?: string): Promise<string|null|undefined> {
+    let tk = s._token;
+    if (!tk) {
+      if (s._sessionStorageAllowed) {
+        try {
+          const token = sessionStorage.getItem('token');
+          if (token) {
+            tk = token
+          }
+        } catch (err) {
+          s._sessionStorageAllowed = false;
+        }
+      }
+    }
+    return Promise.resolve(tk);
+  }
   static getUserId(profile?: string): string|undefined {
     const u = s.getUser(profile);
     return (!u ? '' : u.id);
@@ -305,10 +336,6 @@ class s {
   static getUsername(profile?: string): string|undefined {
     const u = s.getUser(profile);
     return (!u ? '' : u.username);
-  }
-  static getToken(profile?: string): Promise<string|undefined> {
-    const u = s.getUser(profile);
-    return Promise.resolve(!u ? undefined : u.token);
   }
   static getOptions(profile?: string): Promise<{ headers?: Headers }> {
     return s.getToken().then(t => {
@@ -669,7 +696,7 @@ export function getUserType(profile?: string) {
   return s.getUserType(profile);
 }
 export const useUserType = getUserType;
-export function token(profile?: string): Promise<string|undefined> {
+export function token(profile?: string): Promise<string|undefined|null> {
   return s.getToken(profile);
 }
 export const getToken = token;
